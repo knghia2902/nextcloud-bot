@@ -689,6 +689,119 @@ def detailed_health_check():
         "timestamp": datetime.now().isoformat()
     })
 
+
+def add_default_room_after_setup(config):
+    """Add default room after setup completion"""
+    try:
+        nextcloud_config = config.get('nextcloud', {})
+        room_id = nextcloud_config.get('room_id', '')
+        
+        if room_id and room_id != 'your_room_id':
+            # Add to monitored rooms
+            import json
+            import os
+            
+            config_dir = 'config'
+            rooms_file = os.path.join(config_dir, 'monitored_rooms.json')
+            
+            # Load existing rooms
+            monitored_rooms = []
+            if os.path.exists(rooms_file):
+                try:
+                    with open(rooms_file, 'r', encoding='utf-8') as f:
+                        monitored_rooms = json.load(f)
+                except:
+                    monitored_rooms = []
+            
+            # Check if room already exists
+            existing_room = next((room for room in monitored_rooms if room.get('room_id') == room_id), None)
+            if not existing_room:
+                # Add default room
+                default_room = {
+                    "room_id": room_id,
+                    "room_name": "Default Room",
+                    "display_name": "Default Room",
+                    "added_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    "added_by": "setup_wizard",
+                    "auto_add_bot": True,
+                    "bot_status": "pending",
+                    "participant_count": 0
+                }
+                
+                monitored_rooms.append(default_room)
+                
+                # Save to file
+                with open(rooms_file, 'w', encoding='utf-8') as f:
+                    json.dump(monitored_rooms, f, indent=2, ensure_ascii=False)
+                
+                logging.info(f"✅ Added default room {room_id} to monitoring")
+                return True
+        
+        return False
+    except Exception as e:
+        logging.error(f"❌ Error adding default room: {e}")
+        return False
+
+def add_default_room_after_setup(config):
+    """Add default room to monitoring after setup completion"""
+    try:
+        nextcloud_config = config.get('nextcloud', {})
+        room_id = nextcloud_config.get('room_id', '')
+        room_name = nextcloud_config.get('room_name', 'Default Room')
+
+        if room_id and room_id != 'your_room_id':
+            # Add to monitored rooms
+            import json
+            import os
+
+            config_dir = 'config'
+            rooms_file = os.path.join(config_dir, 'monitored_rooms.json')
+
+            # Ensure config directory exists
+            os.makedirs(config_dir, exist_ok=True)
+
+            # Load existing rooms
+            monitored_rooms = []
+            if os.path.exists(rooms_file):
+                try:
+                    with open(rooms_file, 'r', encoding='utf-8') as f:
+                        monitored_rooms = json.load(f)
+                except:
+                    monitored_rooms = []
+
+            # Check if room already exists
+            existing_room = next((room for room in monitored_rooms if room.get('room_id') == room_id), None)
+            if not existing_room:
+                # Add default room
+                default_room = {
+                    "room_id": room_id,
+                    "room_name": room_name,
+                    "display_name": room_name,
+                    "added_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    "added_by": "setup_wizard",
+                    "auto_add_bot": True,
+                    "bot_status": "pending",
+                    "participant_count": 0,
+                    "is_default": True
+                }
+
+                monitored_rooms.append(default_room)
+
+                # Save to file
+                with open(rooms_file, 'w', encoding='utf-8') as f:
+                    json.dump(monitored_rooms, f, indent=2, ensure_ascii=False)
+
+                logging.info(f"✅ Added default room {room_id} ({room_name}) to monitoring")
+                return True
+            else:
+                logging.info(f"ℹ️ Default room {room_id} already exists in monitoring")
+                return True
+
+        return False
+    except Exception as e:
+        logging.error(f"❌ Error adding default room: {e}")
+        return False
+
 @app.route('/api/setup/step', methods=['POST'])
 @login_required
 def save_setup_step():
@@ -743,6 +856,12 @@ def save_setup_step():
         elif step == 5:  # Complete setup
             config['setup_completed'] = True
             config['setup_completed_at'] = datetime.now().isoformat()
+
+            # Add default room to monitoring after setup completion
+            add_default_room_after_setup(config)
+            
+            # Add default room to monitoring
+            add_default_room_after_setup(config)
 
         # Update setup step
         config['setup_step'] = step + 1 if step < 5 else 5
@@ -3905,6 +4024,117 @@ def config_status():
 
 
 # Commands Management API (using existing endpoints above)
+
+@app.route('/api/test/nextcloud', methods=['POST'])
+@login_required
+def test_nextcloud_connection():
+    """Test Nextcloud connection"""
+    try:
+        data = request.get_json()
+        url = data.get('url', '').strip()
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        room_id = data.get('room_id', '').strip()
+
+        if not all([url, username, password]):
+            return jsonify({
+                "status": "error",
+                "message": "Missing required fields"
+            })
+
+        # Test connection
+        from requests.auth import HTTPBasicAuth
+        import requests
+
+        # Test basic auth
+        test_url = f"{url}/ocs/v2.php/cloud/user?format=json"
+        response = requests.get(test_url, auth=HTTPBasicAuth(username, password), timeout=10)
+
+        if response.status_code == 200:
+            # Test room access if room_id provided
+            if room_id:
+                room_url = f"{url}/ocs/v2.php/apps/spreed/api/v4/room/{room_id}?format=json"
+                room_response = requests.get(room_url, auth=HTTPBasicAuth(username, password), timeout=10)
+
+                if room_response.status_code == 200:
+                    return jsonify({
+                        "status": "success",
+                        "message": "Nextcloud connection and room access successful"
+                    })
+                else:
+                    return jsonify({
+                        "status": "warning",
+                        "message": "Nextcloud connection OK but room access failed"
+                    })
+            else:
+                return jsonify({
+                    "status": "success",
+                    "message": "Nextcloud connection successful"
+                })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Nextcloud connection failed"
+            })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Connection test failed: {str(e)}"
+        })
+
+@app.route('/api/test/openrouter', methods=['POST'])
+@login_required
+def test_openrouter_connection():
+    """Test OpenRouter connection"""
+    try:
+        data = request.get_json()
+        api_key = data.get('api_key', '').strip()
+        model = data.get('model', 'anthropic/claude-3.5-sonnet')
+
+        if not api_key:
+            return jsonify({
+                "status": "error",
+                "message": "API key is required"
+            })
+
+        # Test OpenRouter API
+        import requests
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        test_data = {
+            "model": model,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "max_tokens": 10
+        }
+
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=test_data,
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            return jsonify({
+                "status": "success",
+                "message": "OpenRouter connection successful"
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": f"OpenRouter API error: {response.status_code}"
+            })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"OpenRouter test failed: {str(e)}"
+        })
 
 def run_web_server():
     """Run the web server"""

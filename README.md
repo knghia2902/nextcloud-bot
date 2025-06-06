@@ -1,189 +1,110 @@
-# 🤖 Nextcloud Bot - Hệ thống Bot Thông minh
+# Nextcloud Bot - Web Management System
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://docker.com)
-[![Nextcloud](https://img.shields.io/badge/Nextcloud-Compatible-0082c9?logo=nextcloud)](https://nextcloud.com)
-[![Python](https://img.shields.io/badge/Python-3.9+-green?logo=python)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+🤖 **Nextcloud Talk Bot** với **Web Management Interface** đầy đủ tính năng.
 
-**Bot AI tích hợp với Nextcloud Talk, hỗ trợ lệnh quản trị, lưu trữ database và giao diện web quản lý.**
+## ✨ Features
 
-## 🚀 **Cài đặt nhanh - Chỉ 1 lệnh**
+- 🌐 **Web Management Interface** (Port 3000)
+- 🔧 **Setup Wizard** - Guided configuration
+- ☁️ **Nextcloud Integration** - Chat bot functionality
+- 🧠 **OpenRouter AI** - Multiple AI models
+- 📊 **Google Sheets Database** - Data storage
+- 🔗 **n8n Webhook Integration** - Workflow automation
+- 🏠 **Room Management** - Multi-room support
+- 💬 **Command System** - Custom bot commands
+- 📈 **Health Monitoring** - System status
+- 🐳 **Docker Deployment** - Containerized
+- 🔐 **Security** - Password protection
 
-### **Yêu Cầu Hệ Thống**
-- Ubuntu 20.04+ server (đã test Ubuntu 24.04)
-- Port 3000 available (web interface)
-- Google service account (cho database)
+## 🚀 Quick Deploy
 
-### **Cài đặt**
 ```bash
 # Clone repository
-git clone https://github.com/knghia2902/nextcloud-bot.git
+git clone <repository-url>
 cd nextcloud-bot
 
-# Chạy script deployment thông minh
+# Deploy
 chmod +x deploy.sh
 ./deploy.sh
 
-# Script sẽ tự động:
-# - Detect chế độ deployment phù hợp
-# - Install Docker nếu chưa có
-# - Fix lỗi pkg_resources và container restarting
-# - Tạo tất cả file cấu hình cần thiết
-# - Build/deploy containers
-# - Test và show kết quả
+# Access web interface
+http://localhost:3000
+Login: admin / admin123 (change on first login)
 ```
 
-### **Truy cập**
-- **Web Interface**: `http://localhost:3000`
-- **Default Login**: `admin` / `admin123`
-- **Health Check**: `http://localhost:3000/health`
+## 📋 Requirements
 
-## 🔧 **Script Deployment Thông Minh - `deploy.sh`**
+- Docker 20.0+
+- Docker Compose 2.0+
+- 2GB+ RAM
+- 1GB+ disk space
 
-### **Tính năng chính**
-- 🔍 **Auto-detect**: Tự động phát hiện chế độ deployment phù hợp
-- 🔧 **Fix lỗi**: Tự động fix lỗi pkg_resources và container restarting
-- 🏗️ **Build thông minh**: Build from scratch hoặc update nhanh
-- 🐳 **Docker auto-install**: Tự động cài Docker nếu chưa có
-- ✅ **Zero-config**: Tạo tất cả file cấu hình cần thiết
+## 🔧 Configuration
 
-### **Chế độ Auto-detect**
-| Tình huống | Chế độ | Hành động |
-|------------|--------|-----------|
-| 🆕 **Fresh install** | `scratch` | Tạo mới hoàn toàn từ đầu |
-| 🔄 **Containers running** | `update` | Update nhanh không downtime |
-| 🛑 **Containers stopped** | `restart` | Restart containers hiện có |
-| 🖼️ **Images exist** | `rebuild` | Rebuild từ images có sẵn |
-| ⚙️ **Configs exist** | `deploy` | Deploy với configs hiện có |
+1. **First Login**: Change default password
+2. **Setup Wizard**: 5-step configuration
+   - Nextcloud connection
+   - OpenRouter AI
+   - Integrations
+   - Bot settings
+   - Complete setup
 
-## ⚙️ **Cấu hình**
+## 📁 Structure
 
-### **1. Cập nhật .env**
-```env
-# Nextcloud Connection
-NEXTCLOUD_URL=https://your-nextcloud-domain.com
-NEXTCLOUD_USERNAME=bot_user
-NEXTCLOUD_PASSWORD=your_bot_password
-
-# Google Sheets Integration
-GOOGLE_SHEET_ID=1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag
-
-# Bot Configuration
-BOT_NAME=NextcloudBot
-ADMIN_USER_ID=admin
-
-# Web Management Interface
-WEB_PORT=3000
-WEB_ADMIN_USERNAME=admin
-WEB_ADMIN_PASSWORD=admin123
-
-# N8N Integration
-N8N_WEBHOOK_URL=https://n8n.khacnghia.xyz/webhook/nextcloud-bot
+```
+nextcloud-bot/
+├── 🤖 Core Application
+│   ├── web_management.py          # Main web interface
+│   ├── send_nextcloud_message.py  # Bot core
+│   ├── commands.py                # Bot commands
+│   ├── database.py                # Database operations
+│   └── config.py                  # Configuration
+│
+├── 🚀 Deployment
+│   ├── deploy.sh                  # Universal deployment
+│   ├── Dockerfile                 # Container definition
+│   ├── docker-compose.yml         # Service orchestration
+│   └── requirements.txt           # Dependencies
+│
+├── ⚙️ Configuration
+│   ├── config/                    # Config files
+│   ├── credentials.json.template  # Google service account template
+│   └── bot_config.json           # Bot configuration
+│
+└── 🌐 Web Interface
+    ├── templates/                 # HTML templates
+    └── static/                    # CSS, JS, images
 ```
 
-### **2. Cập nhật credentials.json**
-- Thay thế dummy credentials với real Google service account key
-- Chia sẻ Google Sheet với email service account
-
-## 🎮 **Lệnh Bot**
-
-### **Lệnh Chung**
-- `!help` - Hiển thị các lệnh có sẵn
-- `!health` - Kiểm tra sức khỏe hệ thống
-- `!status` - Thông tin trạng thái bot
-- `!ping` - Test kết nối đơn giản
-
-### **Lệnh Admin**
-- `!create [data]` - Tạo entry database mới
-- `!delete [id]` - Xóa entry theo ID
-- `!dinhchi [employee_id]` - Đình chỉ nhân viên
-- `!backup` - Tạo backup thủ công
-- `!restart` - Khởi động lại dịch vụ bot
-
-## 🔧 **Lệnh Quản Lý**
+## 🔧 Management
 
 ```bash
-# Quản Lý Dịch Vụ
-docker compose ps              # Kiểm tra trạng thái
-docker compose logs -f         # Xem logs
-docker compose restart         # Khởi động lại dịch vụ
-docker compose down            # Dừng dịch vụ
+# View logs
+docker compose logs -f
 
-# Deployment
-./deploy.sh                    # Deploy/update thông minh
-```
+# Check status
+docker compose ps
 
-## 🚨 **Khắc Phục Sự Cố**
+# Restart services
+docker compose restart
 
-### **Lỗi Container Restarting**
-```bash
-# Chạy lại script deployment
-./deploy.sh
-
-# Hoặc manual fix
+# Stop services
 docker compose down
-docker compose build --no-cache
-docker compose up -d
-
-# Kiểm tra logs
-docker compose logs -f nextcloud-bot
 ```
 
-### **Bot không phản hồi**
-```bash
-# Kiểm tra logs bot
-docker compose logs nextcloud-bot
+## 📞 Support
 
-# Test kết nối Nextcloud
-curl -u bot_user:password https://your-nextcloud.com/ocs/v2.php/apps/spreed/api/v4/room
-```
+- **Setup Issues**: Check logs with `docker compose logs -f`
+- **Health Check**: `curl http://localhost:3000/health`
+- **Configuration**: Use web interface at http://localhost:3000
 
-### **Giao diện web không truy cập được**
-```bash
-# Kiểm tra port binding
-netstat -tulpn | grep 3000
+## 🔐 Security
 
-# Test port availability
-curl -I http://localhost:3000
-```
-
-## 🔄 **Cập nhật**
-
-```bash
-# Pull thay đổi mới nhất
-git pull origin main
-
-# Chạy lại deployment script
-./deploy.sh
-```
-
-## ✨ **Tính Năng**
-
-### **Bot Cốt Lõi**
-- **Phản Hồi AI Thông Minh** - Tích hợp OpenRouter với các mô hình Claude/GPT
-- **Hỗ Trợ Đa Nhóm** - Quản lý nhiều nhóm Nextcloud Talk
-- **Hệ Thống Lệnh** - Framework lệnh mở rộng với phân quyền
-- **Lịch Sử Trò Chuyện** - Lưu trữ lịch sử chat hoàn chỉnh với Google Sheets
-
-### **Giao Diện Quản Lý Web**
-- **Dashboard Thời Gian Thực** - Giám sát hệ thống và thống kê trực tiếp
-- **Quản Lý Cài Đặt** - Cấu hình tất cả cài đặt bot qua giao diện web
-- **Kiểm Tra Kết Nối** - Test kết nối Nextcloud, database và API
-- **Quản Trị Người Dùng** - Quản lý người dùng, quyền hạn và nhóm
-
-### **Tính Năng Nâng Cao**
-- **Triển Khai Docker** - Giải pháp container hóa hoàn chỉnh
-- **Backup Tự Động** - Backup theo lịch với chính sách lưu trữ
-- **Giám Sát Sức Khỏe** - Kiểm tra sức khỏe hệ thống và cảnh báo
-
-## 📝 **Ghi chú**
-
-- Script `deploy.sh` thay thế cho `build_from_scratch.sh` và `deploy_ubuntu.sh`
-- Tự động detect và chọn chế độ deployment phù hợp
-- Fix lỗi pkg_resources và container restarting
-- Zero-config deployment với auto-install Docker
-- Production ready cho Ubuntu Server
+- Default password must be changed on first login
+- All sensitive data stored securely
+- Session-based authentication
+- API endpoint protection
 
 ---
 
-**🎉 Bot sẵn sàng sử dụng sau khi chạy `./deploy.sh`!**
+**Ready for production deployment!** 🚀
