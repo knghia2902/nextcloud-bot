@@ -325,6 +325,9 @@ def index():
     if not config.get('setup_completed', False):
         return redirect(url_for('setup_wizard'))
 
+    # If setup is completed, redirect to config overview
+    return redirect(url_for('config_overview'))
+
     # Get system stats
     try:
         # Bot status
@@ -423,6 +426,15 @@ def test_setup():
 def test_jquery():
     """Test jQuery loading"""
     return render_template('test_jquery.html')
+
+@app.route('/config-overview')
+def config_overview():
+    """Configuration overview page"""
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+
+    config = load_config()
+    return render_template('config_overview.html', config=config)
 
 @app.route('/dashboard')
 def dashboard():
