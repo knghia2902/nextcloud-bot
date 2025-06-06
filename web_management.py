@@ -690,57 +690,7 @@ def detailed_health_check():
     })
 
 
-def add_default_room_after_setup(config):
-    """Add default room after setup completion"""
-    try:
-        nextcloud_config = config.get('nextcloud', {})
-        room_id = nextcloud_config.get('room_id', '')
-        
-        if room_id and room_id != 'your_room_id':
-            # Add to monitored rooms
-            import json
-            import os
-            
-            config_dir = 'config'
-            rooms_file = os.path.join(config_dir, 'monitored_rooms.json')
-            
-            # Load existing rooms
-            monitored_rooms = []
-            if os.path.exists(rooms_file):
-                try:
-                    with open(rooms_file, 'r', encoding='utf-8') as f:
-                        monitored_rooms = json.load(f)
-                except:
-                    monitored_rooms = []
-            
-            # Check if room already exists
-            existing_room = next((room for room in monitored_rooms if room.get('room_id') == room_id), None)
-            if not existing_room:
-                # Add default room
-                default_room = {
-                    "room_id": room_id,
-                    "room_name": "Default Room",
-                    "display_name": "Default Room",
-                    "added_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    "added_by": "setup_wizard",
-                    "auto_add_bot": True,
-                    "bot_status": "pending",
-                    "participant_count": 0
-                }
-                
-                monitored_rooms.append(default_room)
-                
-                # Save to file
-                with open(rooms_file, 'w', encoding='utf-8') as f:
-                    json.dump(monitored_rooms, f, indent=2, ensure_ascii=False)
-                
-                logging.info(f"✅ Added default room {room_id} to monitoring")
-                return True
-        
-        return False
-    except Exception as e:
-        logging.error(f"❌ Error adding default room: {e}")
-        return False
+
 
 def add_default_room_after_setup(config):
     """Add default room to monitoring after setup completion"""
