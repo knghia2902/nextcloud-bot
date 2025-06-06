@@ -1,0 +1,47 @@
+{
+  "setup_completed": true,
+  "setup_step": 5,
+  "nextcloud": {
+    "url": "https://ncl.khacnghia.xyz",
+    "username": "bot_user",
+    "password": "Hpc!@#123456",
+    "room_id": "cfrcv8if",
+    "enabled": true
+  },
+  "openrouter": {
+    "api_key": "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",
+    "model": "deepseek/deepseek-chat:free",
+    "enabled": false
+  },
+  "integrations": {
+    "google_sheets": {
+      "spreadsheet_id": "",
+      "credentials_file": "",
+      "enabled": false
+    },
+    "n8n_webhook_url": "https://n8n.khacnghia.xyz/webhook/nextcloud-bot",
+    "n8n_enabled": true
+  },
+  "bot_settings": {
+    "bot_name": "NextcloudBot",
+    "admin_user_id": "admin",
+    "language": "vi",
+    "auto_response": true,
+    "log_level": "DEBUG"
+  },
+  "rooms": [],
+  "setup_completed_at": "2025-06-06T01:02:26.403755",
+  "bot": {
+    "name": "Nextcloud Bot",
+    "response_delay": 1,
+    "command_prefix": "!",
+    "enable_ai": true,
+    "auto_respond": true,
+    "log_conversations": false,
+    "debug_mode": false
+  },
+  "_metadata": {
+    "last_updated": "2025-06-05 10:47:47",
+    "updated_by": "admin"
+  }
+}

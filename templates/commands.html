@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Commands Management - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-terminal me-2"></i>Commands Management</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCommandModal">
+                <i class="fas fa-plus me-1"></i>Add Command
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Commands Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Available Commands</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="commandsTable">
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                                <th>Admin Only</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commandsTableBody">
+                            {% for cmd_name, cmd_data in commands.items() %}
+                            <tr>
+                                <td><code>!{{ cmd_name }}</code></td>
+                                <td>{{ cmd_data.description or 'No description' }}</td>
+                                <td>
+                                    {% if cmd_data.admin_only %}
+                                        <span class="badge bg-warning">Admin Only</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Public</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editCommand('{{ cmd_name }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCommand('{{ cmd_name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Command Modal -->
+<div class="modal fade" id="addCommandModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add New Command</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCommandForm">
+                    <div class="mb-3">
+                        <label for="commandName" class="form-label">Command Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text">!</span>
+                            <input type="text" class="form-control" id="commandName" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commandDescription" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="commandDescription" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commandResponse" class="form-label">Response</label>
+                        <textarea class="form-control" id="commandResponse" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="adminOnly">
+                            <label class="form-check-label" for="adminOnly">
+                                Admin Only Command
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCommand()">Save Command</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveCommand() {
+    const name = $('#commandName').val();
+    const description = $('#commandDescription').val();
+    const response = $('#commandResponse').val();
+    const adminOnly = $('#adminOnly').is(':checked');
+    
+    $.ajax({
+        url: '/api/commands',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            description: description,
+            response: response,
+            admin_only: adminOnly
+        }),
+        success: function(data) {
+            $('#addCommandModal').modal('hide');
+            location.reload();
+        },
+        error: function(xhr) {
+            alert('Error: ' + xhr.responseJSON.error);
+        }
+    });
+}
+
+function editCommand(commandName) {
+    // Implementation for editing command
+}
+
+function deleteCommand(commandName) {
+    if (confirm('Are you sure you want to delete command "' + commandName + '"?')) {
+        $.ajax({
+            url: '/api/commands/' + commandName,
+            method: 'DELETE',
+            success: function(data) {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Error: ' + xhr.responseJSON.error);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

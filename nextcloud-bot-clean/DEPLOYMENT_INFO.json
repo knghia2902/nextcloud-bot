@@ -1,0 +1,31 @@
+{
+  "package_name": "nextcloud-bot-clean",
+  "version": "2.0.0",
+  "created": "2025-06-06T01:22:03Z",
+  "description": "Clean deployment package with essential files only",
+  "features": [
+    "Web Management Interface",
+    "Setup Wizard",
+    "Nextcloud Integration", 
+    "OpenRouter AI",
+    "Google Sheets Database",
+    "n8n Webhook Integration",
+    "Room Management",
+    "Command System",
+    "Health Monitoring"
+  ],
+  "requirements": {
+    "docker": ">=20.0",
+    "docker_compose": ">=2.0", 
+    "ram": ">=2GB",
+    "disk": ">=1GB"
+  },
+  "ports": {
+    "web_interface": 3000,
+    "health_check": "3000/health"
+  },
+  "default_credentials": {
+    "username": "admin",
+    "password": "admin123"
+  }
+}

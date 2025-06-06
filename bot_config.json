@@ -1,0 +1,28 @@
+{
+  "nextcloud": {
+    "url": "https://ncl.khacnghia.xyz",
+    "username": "bot_user",
+    "password": "***",
+    "room_id": "cfrcv8if"
+  },
+  "openrouter": {
+    "api_keys": [
+      "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"
+    ],
+    "current_key_index": 0
+  },
+  "n8n": {
+    "webhook_url": "https://n8n.khacnghia.xyz/webhook/nextcloud-bot"
+  },
+  "database": {
+    "spreadsheet_id": "1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag",
+    "service_account_file": "service_account.json"
+  },
+  "web": {
+    "port": 5000,
+    "admin_users": [
+      "admin"
+    ],
+    "admin_password": "admin123"
+  }
+}

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-book me-2"></i>API Documentation</h2>
+        <p class="text-muted">Complete API reference for Nextcloud Bot</p>
+    </div>
+</div>
+
+<!-- API Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>API Overview</h5>
+            </div>
+            <div class="card-body">
+                <p>The Nextcloud Bot provides a RESTful API for managing bot operations, users, commands, and system monitoring.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Base URL</h6>
+                        <code>http://localhost:8081/api</code>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Authentication</h6>
+                        <span class="badge bg-warning">Session-based (Web Interface)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Endpoints -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>API Endpoints</h5>
+            </div>
+            <div class="card-body">
+                <!-- Bot Control -->
+                <h6 class="text-primary">Bot Control</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                                <th>Response</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-info">GET</span></td>
+                                <td><code>/api/bot/status</code></td>
+                                <td>Get bot status</td>
+                                <td><code>{"status": "running"}</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">POST</span></td>
+                                <td><code>/api/bot/start</code></td>
+                                <td>Start bot service</td>
+                                <td><code>{"status": "success", "message": "Bot started"}</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">POST</span></td>
+                                <td><code>/api/bot/stop</code></td>
+                                <td>Stop bot service</td>
+                                <td><code>{"status": "success", "message": "Bot stopped"}</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Commands Management -->
+                <h6 class="text-success">Commands Management</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                                <th>Parameters</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-info">GET</span></td>
+                                <td><code>/api/commands</code></td>
+                                <td>Get all commands</td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">POST</span></td>
+                                <td><code>/api/commands</code></td>
+                                <td>Create new command</td>
+                                <td><code>name, description, response, admin_only</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">GET</span></td>
+                                <td><code>/api/commands/{name}</code></td>
+                                <td>Get specific command</td>
+                                <td>Command name in URL</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">PUT</span></td>
+                                <td><code>/api/commands/{name}</code></td>
+                                <td>Update command</td>
+                                <td><code>description, response, admin_only</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">DELETE</span></td>
+                                <td><code>/api/commands/{name}</code></td>
+                                <td>Delete command</td>
+                                <td>Command name in URL</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Users Management -->
+                <h6 class="text-info">Users Management</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                                <th>Parameters</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-info">GET</span></td>
+                                <td><code>/api/users</code></td>
+                                <td>Get all users</td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">POST</span></td>
+                                <td><code>/api/users</code></td>
+                                <td>Create new user</td>
+                                <td><code>user_id, display_name, is_admin</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">DELETE</span></td>
+                                <td><code>/api/users/{user_id}</code></td>
+                                <td>Delete user</td>
+                                <td>User ID in URL</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- System & Health -->
+                <h6 class="text-secondary">System & Health</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                                <th>Response</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-info">GET</span></td>
+                                <td><code>/health</code></td>
+                                <td>Basic health check</td>
+                                <td><code>{"status": "healthy"}</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">POST</span></td>
+                                <td><code>/api/test-connection</code></td>
+                                <td>Test external connections</td>
+                                <td><code>type, url, username, password</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Example Requests -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-code me-2"></i>Example Requests</h5>
+            </div>
+            <div class="card-body">
+                <h6>Create a new command</h6>
+                <pre class="bg-light p-3 rounded"><code>POST /api/commands
+Content-Type: application/json
+
+{
+    "name": "hello",
+    "description": "Say hello to users",
+    "response": "Hello! How can I help you today?",
+    "admin_only": false
+}</code></pre>
+
+                <h6 class="mt-4">Get bot status</h6>
+                <pre class="bg-light p-3 rounded"><code>GET /api/bot/status
+
+Response:
+{
+    "status": "running",
+    "uptime": "2h 15m 30s",
+    "last_activity": "2024-06-04T10:30:00Z"
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

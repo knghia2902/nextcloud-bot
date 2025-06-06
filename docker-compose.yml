@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  nextcloud-bot:
+    build: .
+    container_name: nextcloud-bot-web
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./credentials.json:/app/credentials.json:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    name: nextcloud-bot-network

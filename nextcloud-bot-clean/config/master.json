@@ -1,0 +1,11 @@
+{
+  "applied_at": "2025-06-06T01:02:26.404983",
+  "applied_components": [
+    "nextcloud",
+    "openrouter",
+    "n8n",
+    "bot_settings"
+  ],
+  "config_version": "1.0",
+  "setup_completed": true
+}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Test jQuery Loading{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-vial me-2"></i>Test jQuery Loading</h2>
+        <p class="text-muted">Kiểm tra jQuery có load đúng không</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">jQuery Status</h5>
+                <div id="jquery-status" class="alert alert-info">
+                    <i class="fas fa-spinner fa-spin me-1"></i>Checking jQuery...
+                </div>
+                
+                <h5 class="card-title mt-4">Test Button</h5>
+                <button id="test-btn" class="btn btn-primary">
+                    <i class="fas fa-play me-1"></i>Test jQuery Click
+                </button>
+                <div id="test-result" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.log('Test jQuery script starting...');
+console.log('typeof $:', typeof $);
+console.log('typeof jQuery:', typeof jQuery);
+
+// Wait for jQuery to be available
+function waitForJQuery(callback) {
+    var attempts = 0;
+    var maxAttempts = 50; // 5 seconds max
+    
+    function check() {
+        attempts++;
+        console.log('Attempt', attempts, '- typeof $:', typeof $);
+        
+        if (typeof $ !== 'undefined' && typeof $.fn !== 'undefined') {
+            console.log('jQuery loaded successfully after', attempts, 'attempts');
+            console.log('jQuery version:', $.fn.jquery);
+            callback();
+        } else if (attempts < maxAttempts) {
+            setTimeout(check, 100);
+        } else {
+            console.error('jQuery failed to load after 5 seconds');
+            document.getElementById('jquery-status').innerHTML = 
+                '<i class="fas fa-times me-1"></i>jQuery failed to load after 5 seconds';
+            document.getElementById('jquery-status').className = 'alert alert-danger';
+        }
+    }
+    
+    check();
+}
+
+console.log('Starting jQuery wait...');
+waitForJQuery(function() {
+    console.log('jQuery is ready, starting document ready...');
+    
+    // Update status
+    $('#jquery-status').html('<i class="fas fa-check me-1"></i>jQuery loaded successfully! Version: ' + $.fn.jquery);
+    $('#jquery-status').removeClass('alert-info').addClass('alert-success');
+    
+    $(document).ready(function() {
+        console.log('Document ready completed');
+        
+        // Test button click
+        $('#test-btn').click(function() {
+            console.log('Test button clicked');
+            $('#test-result').html('<div class="alert alert-success">jQuery click event working!</div>');
+        });
+        
+        console.log('Event handlers bound');
+    });
+});
+</script>
+{% endblock %}
