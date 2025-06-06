@@ -6,10 +6,17 @@
 <div class="row">
     <div class="col-12">
         <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+        {% if config.setup_completed %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Setup Completed:</strong> Bot đã được cấu hình thành công và sẵn sàng hoạt động.
+        </div>
+        {% else %}
         <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>
             <strong>Setup Flow:</strong> Bot chưa được cấu hình. Vui lòng hoàn thành các bước sau để kích hoạt bot.
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -83,7 +90,9 @@
             <div class="card-body text-center">
                 <i class="fas fa-cloud fa-2x text-primary mb-2"></i>
                 <h6 class="card-title">Nextcloud</h6>
-                <span id="nextcloud-status" class="badge bg-secondary">Not Configured</span>
+                <span id="nextcloud-status" class="badge bg-{{ 'success' if config.nextcloud.url else 'secondary' }}">
+                    {{ 'Configured' if config.nextcloud.url else 'Not Configured' }}
+                </span>
             </div>
         </div>
     </div>
@@ -93,7 +102,9 @@
             <div class="card-body text-center">
                 <i class="fas fa-brain fa-2x text-info mb-2"></i>
                 <h6 class="card-title">OpenRouter AI</h6>
-                <span id="openrouter-status" class="badge bg-secondary">Not Configured</span>
+                <span id="openrouter-status" class="badge bg-{{ 'success' if config.openrouter.api_key else 'secondary' }}">
+                    {{ 'Configured' if config.openrouter.api_key else 'Not Configured' }}
+                </span>
             </div>
         </div>
     </div>
@@ -103,7 +114,9 @@
             <div class="card-body text-center">
                 <i class="fas fa-table fa-2x text-success mb-2"></i>
                 <h6 class="card-title">Google Sheets</h6>
-                <span id="sheets-status" class="badge bg-secondary">Not Configured</span>
+                <span id="sheets-status" class="badge bg-{{ 'success' if config.integrations.google_sheets.enabled else 'secondary' }}">
+                    {{ 'Configured' if config.integrations.google_sheets.enabled else 'Not Configured' }}
+                </span>
             </div>
         </div>
     </div>
@@ -113,7 +126,9 @@
             <div class="card-body text-center">
                 <i class="fas fa-share-alt fa-2x text-warning mb-2"></i>
                 <h6 class="card-title">n8n Webhook</h6>
-                <span id="n8n-status" class="badge bg-secondary">Not Configured</span>
+                <span id="n8n-status" class="badge bg-{{ 'success' if config.integrations.n8n_enabled else 'secondary' }}">
+                    {{ 'Configured' if config.integrations.n8n_enabled else 'Not Configured' }}
+                </span>
             </div>
         </div>
     </div>

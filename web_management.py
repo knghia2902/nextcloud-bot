@@ -47,6 +47,7 @@ def login_required(f):
                                    request.path.startswith('/api/setup/')):
                 session['user_id'] = 'admin'
                 session['auto_login'] = True
+                session['password_changed'] = True  # Skip password change for auto-login
             else:
                 # For AJAX requests, return JSON error
                 if request.is_json or request.headers.get('Content-Type') == 'application/json':
@@ -56,6 +57,15 @@ def login_required(f):
                     }), 401
                 # For regular requests, redirect to login
                 return redirect(url_for('login'))
+
+        # Check if password needs to be changed (except for change-password route)
+        if (session.get('user_id') and
+            not session.get('password_changed', False) and
+            not session.get('auto_login', False) and
+            request.endpoint != 'change_password' and
+            request.endpoint != 'logout'):
+            return redirect(url_for('change_password'))
+
         return f(*args, **kwargs)
     return decorated_function
 
@@ -103,6 +113,30 @@ def save_config_to_file(config_data):
         return True
     except Exception as e:
         logging.error(f"Error saving config: {e}")
+        return False
+
+def create_web_config_py(config_data):
+    """Create web_config.py for backward compatibility"""
+    try:
+        nextcloud_config = config_data.get('nextcloud', {})
+
+        web_config_content = f"""# Auto-generated config from web interface
+# Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+NEXTCLOUD_URL = '{nextcloud_config.get('url', 'https://your-nextcloud-domain.com')}'
+USERNAME = '{nextcloud_config.get('username', 'bot_user')}'
+APP_PASSWORD = '{nextcloud_config.get('password', 'your_app_password')}'
+ROOM_ID = '{nextcloud_config.get('room_id', 'your_room_id')}'
+"""
+
+        os.makedirs('config', exist_ok=True)
+        with open('config/web_config.py', 'w') as f:
+            f.write(web_config_content)
+
+        logging.info("✅ Created web_config.py")
+        return True
+    except Exception as e:
+        logging.error(f"❌ Failed to create web_config.py: {e}")
         return False
 
 def apply_config_to_system(config_data):
@@ -325,8 +359,8 @@ def index():
     if not config.get('setup_completed', False):
         return redirect(url_for('setup_wizard'))
 
-    # If setup is completed, redirect to config overview
-    return redirect(url_for('config_overview'))
+    # If setup is completed, show main dashboard
+    return render_template('dashboard.html', config=config)
 
     # Get system stats
     try:
@@ -447,15 +481,46 @@ def login():
     if request.method == 'POST':
         user_id = request.form.get('user_id') or request.form.get('username')
         password = request.form.get('password')
-        
+
         # Simple authentication (in production, use proper auth)
         if user_id in WEB_ADMIN_USERS and password == "admin123":
             session['user_id'] = user_id
-            return redirect(url_for('index'))
+            session['password_changed'] = False  # Mark as needing password change
+            return redirect(url_for('change_password'))
         else:
             return render_template('login.html', error="Sai thông tin đăng nhập")
-    
+
     return render_template('login.html')
+
+@app.route('/change-password', methods=['GET', 'POST'])
+def change_password():
+    """Force password change on first login"""
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not new_password or len(new_password) < 6:
+            return render_template('change_password.html',
+                                 error="Password must be at least 6 characters")
+
+        if new_password != confirm_password:
+            return render_template('change_password.html',
+                                 error="Passwords do not match")
+
+        if new_password == "admin123":
+            return render_template('change_password.html',
+                                 error="Please choose a different password from the default")
+
+        # Save new password (in production, hash it properly)
+        session['password_changed'] = True
+        session['new_password'] = new_password  # Store temporarily
+
+        return redirect(url_for('index'))
+
+    return render_template('change_password.html')
 
 @app.route('/logout')
 def logout():
@@ -469,25 +534,37 @@ def settings():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    # Get current settings from environment or config
+    # Load current settings from web_settings.json
+    config = load_config()
+
+    # Prepare settings for template
     current_settings = {
-        'nextcloud_url': os.getenv('NEXTCLOUD_URL', ''),
-        'nextcloud_username': os.getenv('NEXTCLOUD_USERNAME', ''),
-        'nextcloud_groups': os.getenv('NEXTCLOUD_GROUPS', ''),
-        'bot_name': os.getenv('BOT_NAME', 'NextcloudBot'),
-        'admin_user_id': os.getenv('ADMIN_USER_ID', ''),
-        'n8n_webhook_url': os.getenv('N8N_WEBHOOK_URL', ''),
-        'google_sheet_id': os.getenv('GOOGLE_SHEET_ID', ''),
-        'openrouter_api_key': os.getenv('OPENROUTER_API_KEY', ''),
-        'redis_password': os.getenv('REDIS_PASSWORD', ''),
-        'web_port': os.getenv('WEB_PORT', '8080'),
-        'ssl_email': os.getenv('SSL_EMAIL', ''),
-        'ssl_domain': os.getenv('SSL_DOMAIN', ''),
-        'backup_retention_days': os.getenv('BACKUP_RETENTION_DAYS', '7'),
-        'health_check_interval': os.getenv('HEALTH_CHECK_INTERVAL', '60')
+        'nextcloud_url': config.get('nextcloud', {}).get('url', ''),
+        'nextcloud_username': config.get('nextcloud', {}).get('username', ''),
+        'nextcloud_password': config.get('nextcloud', {}).get('password', ''),
+        'room_id': config.get('nextcloud', {}).get('room_id', ''),
+        'api_version': config.get('nextcloud', {}).get('api_version', 'v4'),
+        'auto_join_rooms': config.get('nextcloud', {}).get('auto_join_rooms', False),
+
+        'openrouter_api_key': config.get('openrouter', {}).get('api_key', ''),
+        'default_model': config.get('openrouter', {}).get('model', 'anthropic/claude-3-sonnet'),
+        'max_tokens': config.get('openrouter', {}).get('max_tokens', 1000),
+        'temperature': config.get('openrouter', {}).get('temperature', 0.7),
+        'enable_ai': config.get('openrouter', {}).get('enabled', True),
+
+        'default_spreadsheet': config.get('integrations', {}).get('google_sheets', {}).get('spreadsheet_id', ''),
+        'n8n_webhook_url': config.get('integrations', {}).get('n8n_webhook_url', ''),
+        'n8n_auth_token': config.get('integrations', {}).get('n8n_auth_token', ''),
+
+        'bot_name': config.get('bot_settings', {}).get('bot_name', 'Nextcloud Bot'),
+        'response_delay': config.get('bot_settings', {}).get('response_delay', 1),
+        'command_prefix': config.get('bot_settings', {}).get('command_prefix', '!'),
+        'auto_respond': config.get('bot_settings', {}).get('auto_response', True),
+        'log_conversations': config.get('bot_settings', {}).get('log_conversations', False),
+        'debug_mode': config.get('bot_settings', {}).get('debug_mode', False)
     }
 
-    return render_template('settings.html', settings=current_settings)
+    return render_template('settings.html', settings=current_settings, config=config)
 
 
 
@@ -672,8 +749,11 @@ def save_setup_step():
 
         # Save configuration to file
         if save_config_to_file(config):
-            # Apply configuration to system
+            # Apply configuration to system - CREATE ENV FILES
             applied_components = apply_config_to_system(config)
+
+            # Also create web_config.py for backward compatibility
+            create_web_config_py(config)
 
             return jsonify({
                 "status": "success",
@@ -2469,12 +2549,11 @@ def get_rooms():
                             logging.info(f"🔗 NEXTCLOUD_URL: {NEXTCLOUD_URL}")
                             logging.info(f"👤 USERNAME: {USERNAME}")
                         except ImportError as ie:
-                            logging.warning(f"⚠️ Import error, using fallback credentials: {ie}")
-                            # Fallback credentials
-                            NEXTCLOUD_URL = "https://ncl.khacnghia.xyz"
-                            USERNAME = "bot_user"
-                            APP_PASSWORD = "Hpc!@#123456"
-                            logging.info(f"🔄 Using fallback - URL: {NEXTCLOUD_URL}, User: {USERNAME}")
+                            logging.warning(f"⚠️ Import error, cannot get credentials: {ie}")
+                            # No fallback credentials for security
+                            room['participant_count'] = 0
+                            room['bot_status'] = 'Config Error'
+                            continue
                         except Exception as ie:
                             logging.error(f"❌ Unexpected import error: {ie}")
                             room['participant_count'] = 0
