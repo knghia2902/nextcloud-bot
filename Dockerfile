@@ -25,11 +25,11 @@ RUN mkdir -p logs config templates static
 RUN chmod +x *.py
 
 # Expose port
-EXPOSE 8081
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8081/health || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Start command
 CMD ["python3", "web_management.py"]

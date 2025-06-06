@@ -24,7 +24,7 @@ show_banner() {
     echo "║                                                              ║"
     echo "║  🔧 Auto-detect: Build from scratch hoặc Deploy nhanh       ║"
     echo "║  ✅ Fix lỗi pkg_resources và container restarting           ║"
-    echo "║  ✅ Web Management Interface (Port 8081)                    ║"
+    echo "║  ✅ Web Management Interface (Port 3000)                    ║"
     echo "║  ✅ Health Monitoring & Auto-fix                            ║"
     echo "║  ✅ Production Ready cho Ubuntu Server                      ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
@@ -200,24 +200,17 @@ interactive_config() {
         echo -e "${GREEN}✅ Monitoring enabled${NC}"
     fi
 
-    # Optional: Nextcloud configuration
-    echo -e "${BLUE}☁️ Nextcloud Configuration (Optional - có thể skip):${NC}"
-    read -p "Enter Nextcloud URL (or press Enter to skip): " NEXTCLOUD_URL
-    if [ -n "$NEXTCLOUD_URL" ]; then
-        read -p "Enter Nextcloud username: " NEXTCLOUD_USERNAME
-        read -s -p "Enter Nextcloud password: " NEXTCLOUD_PASSWORD
-        echo ""
-    else
-        NEXTCLOUD_URL="https://your-nextcloud-domain.com"
-        NEXTCLOUD_USERNAME="bot_user"
-        NEXTCLOUD_PASSWORD="your_bot_password"
-        echo -e "${YELLOW}⚠️ Using default Nextcloud settings - update .env later${NC}"
-    fi
-
-    # Admin configuration - Use defaults
+    # Admin configuration - Use defaults (will be changed on first login)
     WEB_ADMIN_USERNAME="admin"
     WEB_ADMIN_PASSWORD="admin123"
     echo -e "${GREEN}✅ Using default admin credentials: admin/admin123${NC}"
+    echo -e "${YELLOW}⚠️ You will be prompted to change password on first login${NC}"
+
+    # Nextcloud configuration will be done through Setup Wizard
+    NEXTCLOUD_URL="https://your-nextcloud-domain.com"
+    NEXTCLOUD_USERNAME="bot_user"
+    NEXTCLOUD_PASSWORD="your_bot_password"
+    echo -e "${BLUE}☁️ Nextcloud configuration will be done through Setup Wizard${NC}"
 
     echo -e "${GREEN}✅ Configuration completed!${NC}"
     echo ""
@@ -250,7 +243,7 @@ ADMIN_USER_ID=admin
 BOT_VERSION=2.0
 
 # Web Management Interface
-WEB_PORT=8081
+WEB_PORT=3000
 WEB_HOST=0.0.0.0
 WEB_ADMIN_USERNAME=${WEB_ADMIN_USERNAME:-admin}
 WEB_ADMIN_PASSWORD=${WEB_ADMIN_PASSWORD:-admin123}

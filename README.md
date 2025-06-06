@@ -11,7 +11,7 @@
 
 ### **Yêu Cầu Hệ Thống**
 - Ubuntu 20.04+ server (đã test Ubuntu 24.04)
-- Port 8081 available (web interface)
+- Port 3000 available (web interface)
 - Google service account (cho database)
 
 ### **Cài đặt**
@@ -34,9 +34,9 @@ chmod +x deploy.sh
 ```
 
 ### **Truy cập**
-- **Web Interface**: `http://localhost:8081`
+- **Web Interface**: `http://localhost:3000`
 - **Default Login**: `admin` / `admin123`
-- **Health Check**: `http://localhost:8081/health`
+- **Health Check**: `http://localhost:3000/health`
 
 ## 🔧 **Script Deployment Thông Minh - `deploy.sh`**
 
@@ -73,7 +73,7 @@ BOT_NAME=NextcloudBot
 ADMIN_USER_ID=admin
 
 # Web Management Interface
-WEB_PORT=8081
+WEB_PORT=3000
 WEB_ADMIN_USERNAME=admin
 WEB_ADMIN_PASSWORD=admin123
 
@@ -141,10 +141,10 @@ curl -u bot_user:password https://your-nextcloud.com/ocs/v2.php/apps/spreed/api/
 ### **Giao diện web không truy cập được**
 ```bash
 # Kiểm tra port binding
-netstat -tulpn | grep 8081
+netstat -tulpn | grep 3000
 
 # Test port availability
-curl -I http://localhost:8081
+curl -I http://localhost:3000
 ```
 
 ## 🔄 **Cập nhật**

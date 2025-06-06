@@ -19,20 +19,20 @@ class ConfigManager:
         """Load cấu hình từ file"""
         default_config = {
             "nextcloud": {
-                "url": "https://ncl.khacnghia.xyz",
+                "url": "https://your-nextcloud-domain.com",
                 "username": "bot_user",
-                "password": "Hpc!@#123456",
-                "room_id": "cfrcv8if"
+                "password": "your_app_password",
+                "room_id": "your_room_id"
             },
             "openrouter": {
-                "api_keys": ["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"],
+                "api_keys": ["your_openrouter_api_key"],
                 "current_key_index": 0
             },
             "n8n": {
-                "webhook_url": "https://n8n.khacnghia.xyz/webhook/nextcloud-bot"
+                "webhook_url": "https://your-n8n-domain.com/webhook/nextcloud-bot"
             },
             "database": {
-                "spreadsheet_id": "1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag",
+                "spreadsheet_id": "your_google_sheet_id",
                 "service_account_file": "credentials.json"
             },
             "web": {

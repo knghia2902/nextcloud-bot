@@ -2,23 +2,23 @@
 # Update these values with your actual Nextcloud settings
 
 # Nextcloud server URL (without trailing slash)
-NEXTCLOUD_URL = "https://ncl.khacnghia.xyz"
+NEXTCLOUD_URL = "https://your-nextcloud-domain.com"
 
 # Talk room ID (get this from the room URL)
-ROOM_ID = "cfrcv8if"
+ROOM_ID = "your_room_id"
 
 # Bot user credentials
 USERNAME = "bot_user"
-APP_PASSWORD = "Hpc!@#123456"  # This should be an app password, not the user's main password
+APP_PASSWORD = "your_app_password"  # This should be an app password, not the user's main password
 
 # OpenRouter API key for AI responses
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "your_openrouter_api_key"
 
 # n8n Webhook URL (optional)
-N8N_WEBHOOK_URL = "https://n8n.khacnghia.xyz/webhook-test/nextcloud-bot"
+N8N_WEBHOOK_URL = "https://your-n8n-domain.com/webhook/nextcloud-bot"
 
 # Admin users (can use admin commands)
-ADMIN_USERS = ["admin", "khacnghia"]
+ADMIN_USERS = ["admin", "your_username"]
 
 # Debug settings
 DEBUG_MODE = True
@@ -45,12 +45,12 @@ LOG_LEVEL = "DEBUG"  # DEBUG, INFO, WARNING, ERROR
 
 5. For Google Firestore:
    - Go to https://console.cloud.google.com
-   - Select project: arched-flame-438213-a1
+   - Create your own project
    - Enable Firestore API
    - Create Firestore database in Native mode
-   - The bot will automatically create collections when it runs
+   - Download service account credentials
 
 6. Test the setup:
-   - Run: python3 simple_test.py
-   - All tests should pass before running the full bot
+   - Run: python3 web_management.py
+   - Access: http://localhost:3000
 """

@@ -3818,7 +3818,7 @@ def config_status():
 def run_web_server():
     """Run the web server"""
     try:
-        logging.info("Starting web management server on port 8081...")
+        logging.info("Starting web management server on port 3000...")
         print("🚀 Starting Nextcloud Bot Web Management...")
         print("=" * 60)
         print("📋 SETUP FLOW:")
@@ -3827,15 +3827,15 @@ def run_web_server():
         print("   3. 🏠 Admin needs to add bot to rooms")
         print("   4. 🤖 Bot will start working after configuration")
         print("=" * 60)
-        print("🌐 Web Interface: http://localhost:8081")
+        print("🌐 Web Interface: http://localhost:3000")
         print("👤 Default Login: admin / admin123")
         print("=" * 60)
         print("⚠️  NOTE: Bot is NOT connected to any platform yet.")
         print("   Please login to web interface to configure connections.")
         print("=" * 60)
 
-        # socketio.run(app, host='0.0.0.0', port=8081, debug=True, allow_unsafe_werkzeug=True)
-        app.run(host='0.0.0.0', port=8081, debug=False)  # Use regular Flask instead of SocketIO
+        # socketio.run(app, host='0.0.0.0', port=3000, debug=True, allow_unsafe_werkzeug=True)
+        app.run(host='0.0.0.0', port=3000, debug=False)  # Use regular Flask instead of SocketIO
     except Exception as e:
         logging.error(f"Failed to start web server: {e}")
         print(f"❌ Web server failed to start: {e}")
