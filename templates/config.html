@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-cogs me-2"></i>Advanced Configuration</h2>
+        <p class="text-muted">Advanced settings for bot configuration and system management.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Configuration Tabs -->
+        <ul class="nav nav-tabs" id="configTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="nextcloud-tab" data-bs-toggle="tab" data-bs-target="#nextcloud" type="button" role="tab">
+                    <i class="fas fa-cloud me-1"></i>Nextcloud
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="openrouter-tab" data-bs-toggle="tab" data-bs-target="#openrouter" type="button" role="tab">
+                    <i class="fas fa-robot me-1"></i>OpenRouter
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="web-tab" data-bs-toggle="tab" data-bs-target="#web" type="button" role="tab">
+                    <i class="fas fa-globe me-1"></i>Web Interface
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab">
+                    <i class="fas fa-server me-1"></i>System
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="configTabContent">
+            <!-- Nextcloud Configuration -->
+            <div class="tab-pane fade show active" id="nextcloud" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-cloud me-2"></i>Nextcloud Settings</h5>
+                        <form id="nextcloudForm">
+                            <div class="mb-3">
+                                <label for="nc_url" class="form-label">Nextcloud URL</label>
+                                <input type="url" class="form-control" id="nc_url" placeholder="https://your-nextcloud.com">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nc_username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="nc_username">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nc_password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="nc_password">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nc_room_id" class="form-label">Default Room ID</label>
+                                <input type="text" class="form-control" id="nc_room_id">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="saveConfig('nextcloud')">
+                                <i class="fas fa-save me-1"></i>Save Nextcloud Config
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OpenRouter Configuration -->
+            <div class="tab-pane fade" id="openrouter" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-robot me-2"></i>OpenRouter AI Settings</h5>
+                        <form id="openrouterForm">
+                            <div class="mb-3">
+                                <label for="or_api_keys" class="form-label">API Keys</label>
+                                <textarea class="form-control" id="or_api_keys" rows="3" placeholder="Enter API keys, one per line"></textarea>
+                                <div class="form-text">Enter multiple API keys for load balancing and failover.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="or_current_key_index" class="form-label">Current Key Index</label>
+                                <input type="number" class="form-control" id="or_current_key_index" min="0" value="0">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="saveConfig('openrouter')">
+                                <i class="fas fa-save me-1"></i>Save OpenRouter Config
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Web Interface Configuration -->
+            <div class="tab-pane fade" id="web" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-globe me-2"></i>Web Interface Settings</h5>
+                        <form id="webForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="web_port" class="form-label">Port</label>
+                                        <input type="number" class="form-control" id="web_port" min="1000" max="65535">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="web_admin_users" class="form-label">Admin Users</label>
+                                        <input type="text" class="form-control" id="web_admin_users" placeholder="admin,user2">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="web_admin_password" class="form-label">Admin Password</label>
+                                <input type="password" class="form-control" id="web_admin_password">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="saveConfig('web')">
+                                <i class="fas fa-save me-1"></i>Save Web Config
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Configuration -->
+            <div class="tab-pane fade" id="system" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-server me-2"></i>System Settings</h5>
+                        <form id="systemForm">
+                            <div class="mb-3">
+                                <label for="sys_log_level" class="form-label">Log Level</label>
+                                <select class="form-select" id="sys_log_level">
+                                    <option value="DEBUG">Debug</option>
+                                    <option value="INFO">Info</option>
+                                    <option value="WARNING">Warning</option>
+                                    <option value="ERROR">Error</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sys_max_log_size" class="form-label">Max Log Size (MB)</label>
+                                <input type="number" class="form-control" id="sys_max_log_size" min="1" max="1000">
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sys_auto_backup">
+                                    <label class="form-check-label" for="sys_auto_backup">
+                                        Enable Auto Backup
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="saveConfig('system')">
+                                <i class="fas fa-save me-1"></i>Save System Config
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Status -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Configuration Status</h5>
+            </div>
+            <div class="card-body">
+                <div id="configStatus">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="loadCurrentConfig()">
+                        <i class="fas fa-sync-alt me-1"></i>Reload Config
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="backupConfig()">
+                        <i class="fas fa-download me-1"></i>Backup Config
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="resetConfig()">
+                        <i class="fas fa-undo me-1"></i>Reset to Default
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    loadCurrentConfig();
+});
+
+function loadCurrentConfig() {
+    $.get('/api/config')
+        .done(function(data) {
+            // Populate Nextcloud config
+            if (data.nextcloud) {
+                $('#nc_url').val(data.nextcloud.url || '');
+                $('#nc_username').val(data.nextcloud.username || '');
+                $('#nc_password').val(data.nextcloud.password || '');
+                $('#nc_room_id').val(data.nextcloud.room_id || '');
+            }
+            
+            // Populate OpenRouter config
+            if (data.openrouter) {
+                $('#or_api_keys').val((data.openrouter.api_keys || []).join('\n'));
+                $('#or_current_key_index').val(data.openrouter.current_key_index || 0);
+            }
+            
+            // Populate Web config
+            if (data.web) {
+                $('#web_port').val(data.web.port || 5000);
+                $('#web_admin_users').val((data.web.admin_users || []).join(','));
+                $('#web_admin_password').val(data.web.admin_password || '');
+            }
+            
+            updateConfigStatus(data);
+        })
+        .fail(function() {
+            alert('Error loading configuration');
+        });
+}
+
+function saveConfig(section) {
+    let configData = {};
+    
+    if (section === 'nextcloud') {
+        configData = {
+            url: $('#nc_url').val(),
+            username: $('#nc_username').val(),
+            password: $('#nc_password').val(),
+            room_id: $('#nc_room_id').val()
+        };
+    } else if (section === 'openrouter') {
+        configData = {
+            api_keys: $('#or_api_keys').val().split('\n').filter(key => key.trim()),
+            current_key_index: parseInt($('#or_current_key_index').val())
+        };
+    } else if (section === 'web') {
+        configData = {
+            port: parseInt($('#web_port').val()),
+            admin_users: $('#web_admin_users').val().split(',').map(u => u.trim()),
+            admin_password: $('#web_admin_password').val()
+        };
+    }
+    
+    $.ajax({
+        url: `/api/config/${section}`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(configData),
+        success: function(data) {
+            alert(`${section} configuration saved successfully!`);
+            loadCurrentConfig();
+        },
+        error: function(xhr) {
+            alert('Error saving configuration: ' + xhr.responseJSON.error);
+        }
+    });
+}
+
+function updateConfigStatus(config) {
+    let html = '';
+    
+    // Check Nextcloud config
+    const ncStatus = config.nextcloud && config.nextcloud.url ? 'configured' : 'missing';
+    html += `<div class="mb-2"><strong>Nextcloud:</strong> <span class="badge bg-${ncStatus === 'configured' ? 'success' : 'warning'}">${ncStatus}</span></div>`;
+    
+    // Check OpenRouter config
+    const orStatus = config.openrouter && config.openrouter.api_keys && config.openrouter.api_keys.length > 0 ? 'configured' : 'missing';
+    html += `<div class="mb-2"><strong>OpenRouter:</strong> <span class="badge bg-${orStatus === 'configured' ? 'success' : 'warning'}">${orStatus}</span></div>`;
+    
+    // Check Web config
+    const webStatus = config.web && config.web.port ? 'configured' : 'missing';
+    html += `<div class="mb-2"><strong>Web Interface:</strong> <span class="badge bg-${webStatus === 'configured' ? 'success' : 'warning'}">${webStatus}</span></div>`;
+    
+    $('#configStatus').html(html);
+}
+
+function backupConfig() {
+    $.get('/api/config')
+        .done(function(data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nextcloud-bot-config-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+}
+
+function resetConfig() {
+    if (confirm('Are you sure you want to reset all configuration to default values? This cannot be undone.')) {
+        // Reset form values to defaults
+        $('#nc_url, #nc_username, #nc_password, #nc_room_id').val('');
+        $('#or_api_keys').val('');
+        $('#or_current_key_index').val(0);
+        $('#web_port').val(5000);
+        $('#web_admin_users').val('admin');
+        $('#web_admin_password').val('');
+        
+        alert('Configuration reset to defaults. Remember to save each section.');
+    }
+}
+</script>
+{% endblock %}
