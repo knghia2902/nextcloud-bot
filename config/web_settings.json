@@ -1,9 +1,54 @@
 {
-  "setup_completed": false,
-  "setup_step": 1,
-  "nextcloud": {},
-  "openrouter": {},
-  "integrations": {},
-  "bot_settings": {},
-  "rooms": []
+  "setup_completed": true,
+  "setup_step": 5,
+  "nextcloud": {
+    "url": "",
+    "username": "",
+    "password": "",
+    "room_id": "",
+    "enabled": true,
+    "api_version": "v4",
+    "auto_join_rooms": false
+  },
+  "openrouter": {
+    "api_key": "",
+    "model": "meta-llama/llama-3.1-8b-instruct:free",
+    "enabled": true,
+    "default_model": "anthropic/claude-3-sonnet",
+    "max_tokens": 1000,
+    "temperature": 0.7
+  },
+  "integrations": {
+    "google_sheets": {
+      "spreadsheet_id": "",
+      "credentials_file": "",
+      "enabled": false
+    },
+    "n8n_webhook_url": "https://n8n.khacnghia.xyz/webhook/nextcloud-bot",
+    "n8n_enabled": false,
+    "n8n_auth_token": "",
+    "default_spreadsheet": "1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag"
+  },
+  "bot_settings": {
+    "bot_name": "NextcloudBot",
+    "admin_user_id": "admin",
+    "language": "vi",
+    "auto_response": true,
+    "log_level": "DEBUG"
+  },
+  "rooms": [],
+  "setup_completed_at": "2025-06-06T17:10:23.893962",
+  "bot": {
+    "name": "Nextcloud Bot",
+    "response_delay": 1,
+    "command_prefix": "!",
+    "enable_ai": true,
+    "auto_respond": true,
+    "log_conversations": false,
+    "debug_mode": false
+  },
+  "_metadata": {
+    "last_updated": "2025-06-06 17:13:05",
+    "updated_by": "admin"
+  }
 }

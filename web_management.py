@@ -943,7 +943,7 @@ def test_nextcloud_connection():
 
 @app.route('/api/test/openrouter', methods=['POST'])
 @login_required
-def test_ai_connection():
+def test_openrouter_connection():
     """Test AI connection for multiple providers"""
     try:
         data = request.get_json()
@@ -3975,116 +3975,7 @@ def config_status():
 
 # Commands Management API (using existing endpoints above)
 
-@app.route('/api/test/nextcloud', methods=['POST'])
-@login_required
-def test_nextcloud_connection():
-    """Test Nextcloud connection"""
-    try:
-        data = request.get_json()
-        url = data.get('url', '').strip()
-        username = data.get('username', '').strip()
-        password = data.get('password', '').strip()
-        room_id = data.get('room_id', '').strip()
 
-        if not all([url, username, password]):
-            return jsonify({
-                "status": "error",
-                "message": "Missing required fields"
-            })
-
-        # Test connection
-        from requests.auth import HTTPBasicAuth
-        import requests
-
-        # Test basic auth
-        test_url = f"{url}/ocs/v2.php/cloud/user?format=json"
-        response = requests.get(test_url, auth=HTTPBasicAuth(username, password), timeout=10)
-
-        if response.status_code == 200:
-            # Test room access if room_id provided
-            if room_id:
-                room_url = f"{url}/ocs/v2.php/apps/spreed/api/v4/room/{room_id}?format=json"
-                room_response = requests.get(room_url, auth=HTTPBasicAuth(username, password), timeout=10)
-
-                if room_response.status_code == 200:
-                    return jsonify({
-                        "status": "success",
-                        "message": "Nextcloud connection and room access successful"
-                    })
-                else:
-                    return jsonify({
-                        "status": "warning",
-                        "message": "Nextcloud connection OK but room access failed"
-                    })
-            else:
-                return jsonify({
-                    "status": "success",
-                    "message": "Nextcloud connection successful"
-                })
-        else:
-            return jsonify({
-                "status": "error",
-                "message": "Nextcloud connection failed"
-            })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": f"Connection test failed: {str(e)}"
-        })
-
-@app.route('/api/test/openrouter', methods=['POST'])
-@login_required
-def test_openrouter_connection():
-    """Test OpenRouter connection"""
-    try:
-        data = request.get_json()
-        api_key = data.get('api_key', '').strip()
-        model = data.get('model', 'anthropic/claude-3.5-sonnet')
-
-        if not api_key:
-            return jsonify({
-                "status": "error",
-                "message": "API key is required"
-            })
-
-        # Test OpenRouter API
-        import requests
-
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-
-        test_data = {
-            "model": model,
-            "messages": [{"role": "user", "content": "Hello"}],
-            "max_tokens": 10
-        }
-
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=test_data,
-            timeout=30
-        )
-
-        if response.status_code == 200:
-            return jsonify({
-                "status": "success",
-                "message": "OpenRouter connection successful"
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "message": f"OpenRouter API error: {response.status_code}"
-            })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": f"OpenRouter test failed: {str(e)}"
-        })
 
 def run_web_server():
     """Run the web server"""

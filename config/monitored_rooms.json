@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "room_id": "cfrcv8if",
+    "room_name": "Default Room",
+    "display_name": "Default Room",
+    "added_at": "2025-06-06 17:10:23",
+    "added_by": "setup_wizard",
+    "auto_add_bot": true,
+    "bot_status": "pending",
+    "participant_count": 0,
+    "is_default": true
+  }
+]

@@ -20,7 +20,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/knghia2902/nextcloud-bot.git
+git clone <repository-url>
 cd nextcloud-bot
 
 # Deploy

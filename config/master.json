@@ -1,6 +1,10 @@
 {
-  "applied_at": "not_configured",
-  "applied_components": [],
+  "applied_at": "2025-06-06T17:10:23.899584",
+  "applied_components": [
+    "nextcloud",
+    "openrouter",
+    "bot_settings"
+  ],
   "config_version": "1.0",
-  "setup_completed": false
+  "setup_completed": true
 }
