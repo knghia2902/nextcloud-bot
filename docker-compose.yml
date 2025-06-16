@@ -1,0 +1,74 @@
+services:
+  # Redis for ultra-fast command lookup (hot cache)
+  redis:
+    image: redis:7-alpine
+    container_name: nextcloud-bot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    sysctls:
+      - net.core.somaxconn=65535
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Main bot application with hybrid database
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nextcloud-bot-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"               # Web Management Interface
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./backups:/app/backups
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - PYTHONUNBUFFERED=1
+      - PYTHONWARNINGS=ignore::DeprecationWarning
+      - NEXTCLOUD_URL=${NEXTCLOUD_URL:-}
+      - NEXTCLOUD_USERNAME=${NEXTCLOUD_USERNAME:-}
+      - NEXTCLOUD_PASSWORD=${NEXTCLOUD_PASSWORD:-}
+      - BOT_NAME=${BOT_NAME:-NextcloudBot}
+      - ADMIN_USER_ID=${ADMIN_USER_ID:-}
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID:-}
+      - GOOGLE_SERVICE_ACCOUNT_FILE=${GOOGLE_SERVICE_ACCOUNT_FILE:-credentials.json}
+      - WEB_ADMIN_USERNAME=${WEB_ADMIN_USERNAME:-admin}
+      - WEB_ADMIN_PASSWORD=${WEB_ADMIN_PASSWORD:-your_admin_password}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-}
+      # Hybrid Database Configuration
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_TYPE=hybrid
+      - CACHE_TTL=3600
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  redis_data:
+    driver: local

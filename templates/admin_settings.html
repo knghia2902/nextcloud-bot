@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Settings - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-user-cog me-2"></i>Admin Settings</h2>
+                <p class="text-muted mb-0">Manage your administrator account and preferences</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary btn-sm" onclick="loadAdminSettings()">
+                    <i class="fas fa-sync-alt me-1"></i>Reload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Profile -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user me-2"></i>Profile</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                    <h5>{{ settings.full_name }}</h5>
+                    <p class="text-muted">{{ settings.username }}</p>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <div class="h5 mb-1">Active</div>
+                            <small class="text-muted">Status</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="h5 mb-1">{{ settings.last_login }}</div>
+                        <small class="text-muted">Last Login</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Account Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="adminSettingsForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" value="{{ settings.full_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{ settings.email }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="language" class="form-label">Language</label>
+                            <select class="form-select" id="language">
+                                <option value="en" {% if settings.language == 'en' %}selected{% endif %}>English</option>
+                                <option value="vi" {% if settings.language == 'vi' %}selected{% endif %}>Tiếng Việt</option>
+                                <option value="fr" {% if settings.language == 'fr' %}selected{% endif %}>Français</option>
+                                <option value="de" {% if settings.language == 'de' %}selected{% endif %}>Deutsch</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="timezone" class="form-label">Timezone</label>
+                            <select class="form-select" id="timezone">
+                                <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                <option value="Asia/Ho_Chi_Minh" {% if settings.timezone == 'Asia/Ho_Chi_Minh' %}selected{% endif %}>Asia/Ho Chi Minh</option>
+                                <option value="America/New_York" {% if settings.timezone == 'America/New_York' %}selected{% endif %}>America/New York</option>
+                                <option value="Europe/London" {% if settings.timezone == 'Europe/London' %}selected{% endif %}>Europe/London</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="theme" class="form-label">Theme</label>
+                            <select class="form-select" id="theme">
+                                <option value="light" {% if settings.theme == 'light' %}selected{% endif %}>Light</option>
+                                <option value="dark" {% if settings.theme == 'dark' %}selected{% endif %}>Dark</option>
+                                <option value="auto" {% if settings.theme == 'auto' %}selected{% endif %}>Auto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                            <input type="number" class="form-control" id="sessionTimeout" value="{{ settings.session_timeout }}" min="5" max="480">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="notifications" {% if settings.notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="notifications">
+                                Enable Email Notifications
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="twoFactorEnabled" {% if settings.two_factor_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="twoFactorEnabled">
+                                Enable Two-Factor Authentication
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Settings
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                            <i class="fas fa-undo me-2"></i>Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Settings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Change Password</h6>
+                        <form id="passwordForm">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Session Management</h6>
+                        <div class="mb-3">
+                            <p class="text-muted">Active sessions and security options</p>
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                                <div>
+                                    <strong>Current Session</strong>
+                                    <br><small class="text-muted">Started: {{ settings.last_login }}</small>
+                                </div>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-danger" onclick="logoutAllSessions()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout All Sessions
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="generateApiKey()">
+                                <i class="fas fa-key me-2"></i>Generate API Key
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Form submission
+    $('#adminSettingsForm').on('submit', function(e) {
+        e.preventDefault();
+        saveAdminSettings();
+    });
+
+    $('#passwordForm').on('submit', function(e) {
+        e.preventDefault();
+        changePassword();
+    });
+});
+
+function saveAdminSettings() {
+    const settings = {
+        full_name: $('#fullName').val(),
+        email: $('#email').val(),
+        language: $('#language').val(),
+        timezone: $('#timezone').val(),
+        theme: $('#theme').val(),
+        session_timeout: parseInt($('#sessionTimeout').val()),
+        notifications: $('#notifications').is(':checked'),
+        two_factor_enabled: $('#twoFactorEnabled').is(':checked')
+    };
+
+    $.ajax({
+        url: '/api/admin/settings',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(settings)
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            showAlert('Admin settings saved successfully!', 'success');
+        } else {
+            showAlert('Failed to save settings: ' + data.message, 'danger');
+        }
+    })
+    .fail(function() {
+        showAlert('Failed to save admin settings', 'danger');
+    });
+}
+
+function changePassword() {
+    const currentPassword = $('#currentPassword').val();
+    const newPassword = $('#newPassword').val();
+    const confirmPassword = $('#confirmPassword').val();
+
+    if (newPassword !== confirmPassword) {
+        showAlert('New passwords do not match', 'danger');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/admin/change-password',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword
+        })
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            showAlert('Password changed successfully!', 'success');
+            $('#passwordForm')[0].reset();
+        } else {
+            showAlert('Failed to change password: ' + data.message, 'danger');
+        }
+    })
+    .fail(function() {
+        showAlert('Failed to change password', 'danger');
+    });
+}
+
+function loadAdminSettings() {
+    location.reload();
+}
+
+function resetForm() {
+    $('#adminSettingsForm')[0].reset();
+}
+
+function logoutAllSessions() {
+    if (confirm('Are you sure you want to logout all sessions? You will be redirected to login.')) {
+        $.post('/api/admin/logout-all')
+            .done(function() {
+                window.location.href = '/login';
+            });
+    }
+}
+
+function generateApiKey() {
+    if (confirm('Generate a new API key for external integrations?')) {
+        $.post('/api/admin/generate-api-key')
+            .done(function(data) {
+                if (data.status === 'success') {
+                    showAlert('API Key: ' + data.api_key, 'success');
+                } else {
+                    showAlert('Failed to generate API key', 'danger');
+                }
+            });
+    }
+}
+
+function showAlert(message, type) {
+    // Create alert container if it doesn't exist
+    if ($('#alert-container').length === 0) {
+        $('body').append(`
+            <div id="alert-container" style="
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 9999;
+                max-width: 400px;
+                width: 100%;
+            "></div>
+        `);
+    }
+
+    const alertDiv = $(`
+        <div class="alert alert-${type} alert-dismissible fade show mb-3" role="alert" style="
+            border-radius: 15px; 
+            border: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        ">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+
+    $('#alert-container').prepend(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.fadeOut(() => alertDiv.remove());
+    }, 5000);
+}
+</script>
+{% endblock %}

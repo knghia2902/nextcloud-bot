@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Rooms</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Test Rooms Page</h1>
+    <div id="status">Loading...</div>
+    <div id="rooms-data"></div>
+    
+    <script>
+    console.log('🔍 Test page script loaded');
+    
+    $(document).ready(function() {
+        console.log('🔍 jQuery ready, version:', $.fn.jquery);
+        $('#status').text('jQuery loaded, calling API...');
+        
+        $.get('/api/rooms')
+            .done(function(data) {
+                console.log('✅ API success:', data);
+                $('#status').text('API Success!');
+                $('#rooms-data').html('<pre>' + JSON.stringify(data, null, 2) + '</pre>');
+            })
+            .fail(function(xhr, status, error) {
+                console.error('❌ API failed:', error);
+                $('#status').text('API Failed: ' + error);
+                $('#rooms-data').text('Error: ' + xhr.responseText);
+            });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<div class="step-content">
+    <h4><i class="fas fa-plug me-2"></i>Bước 3: Cấu hình Integrations</h4>
+    <p class="text-muted">Kết nối với Google Sheets và n8n webhook (tùy chọn)</p>
+    
+    <form id="integrations-form">
+        <!-- Google Sheets Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="google_sheets_enabled" name="google_sheets_enabled"
+                           {{ 'checked' if config.get('integrations', {}).get('google_sheets', {}).get('enabled', False) else '' }}>
+                    <label class="form-check-label" for="google_sheets_enabled">
+                        <i class="fas fa-table me-1"></i><strong>Google Sheets Integration</strong>
+                    </label>
+                </div>
+            </div>
+            <div class="card-body" id="google-sheets-config">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="google_spreadsheet_id" class="form-label">
+                                <i class="fas fa-link me-1"></i>Spreadsheet ID
+                            </label>
+                            <input type="text" class="form-control" id="google_spreadsheet_id" name="google_sheets_spreadsheet_id"
+                                   value="{{ config.get('integrations', {}).get('google_sheets', {}).get('spreadsheet_id', '1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag') }}"
+                                   placeholder="1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag">
+                            <div class="form-text">ID của Google Spreadsheet</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="google_credentials_file" class="form-label">
+                                <i class="fas fa-file-upload me-1"></i>Credentials File
+                            </label>
+                            <input type="file" class="form-control" id="google_credentials_file" name="google_sheets_credentials_file"
+                                   accept=".json">
+                            <div class="form-text">Upload credentials.json từ Google Cloud</div>
+                            <div id="credentials-status" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Google Sheets -->
+                <div class="row">
+                    <div class="col-12">
+                        <button type="button" id="test-google-sheets" class="btn btn-outline-success">
+                            <i class="fas fa-play me-1"></i>Test Google Sheets
+                        </button>
+                        <div id="google-sheets-result" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- n8n Webhook Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="n8n_enabled" name="n8n_enabled"
+                           {{ 'checked' if config.get('integrations', {}).get('n8n_enabled', False) else '' }}>
+                    <label class="form-check-label" for="n8n_enabled">
+                        <i class="fas fa-share-alt me-1"></i><strong>n8n Webhook Integration</strong>
+                    </label>
+                </div>
+            </div>
+            <div class="card-body" id="n8n-config">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="n8n_webhook_url" class="form-label">
+                                <i class="fas fa-link me-1"></i>Webhook URL
+                            </label>
+                            <input type="url" class="form-control" id="n8n_webhook_url" name="n8n_webhook_url"
+                                   value="{{ config.get('integrations', {}).get('n8n_webhook_url', '') }}"
+                                   placeholder="https://your-n8n.com/webhook/nextcloud-bot">
+                            <div class="form-text">URL webhook từ n8n workflow</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Actions</label><br>
+                            <button type="button" id="test-n8n" class="btn btn-outline-warning">
+                                <i class="fas fa-play me-1"></i>Test n8n
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="n8n-result" class="mt-2"></div>
+            </div>
+        </div>
+        
+        <!-- Integration Summary -->
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-info-circle me-1"></i>Tóm tắt Integrations
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-table me-1"></i>Google Sheets</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-1"></i>Lưu trữ dữ liệu chat</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Báo cáo thống kê</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Export dữ liệu</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-share-alt me-1"></i>n8n Webhook</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-1"></i>Automation workflows</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Kết nối với hệ thống khác</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Custom integrations</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3" id="integration-tip">
+                    <i class="fas fa-lightbulb me-1"></i>
+                    <strong>Tip:</strong> Cả hai integrations đều là tùy chọn. Bạn có thể bỏ qua và cấu hình sau.
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Help Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-question-circle me-1"></i>Hướng dẫn
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Google Sheets Setup:</h6>
+                            <ol>
+                                <li>Tạo project trong Google Cloud Console</li>
+                                <li>Enable Google Sheets API</li>
+                                <li>Tạo Service Account</li>
+                                <li>Download credentials.json</li>
+                                <li>Share spreadsheet với service account email</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>n8n Webhook Setup:</h6>
+                            <ol>
+                                <li>Tạo workflow trong n8n</li>
+                                <li>Thêm Webhook node</li>
+                                <li>Copy webhook URL</li>
+                                <li>Paste vào trường Webhook URL</li>
+                                <li>Test connection</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Toggle Google Sheets config
+    $('#google_sheets_enabled').change(function() {
+        if ($(this).is(':checked')) {
+            $('#google-sheets-config').show();
+        } else {
+            $('#google-sheets-config').hide();
+        }
+    }).trigger('change');
+    
+    // Toggle n8n config
+    $('#n8n_enabled').change(function() {
+        if ($(this).is(':checked')) {
+            $('#n8n-config').show();
+        } else {
+            $('#n8n-config').hide();
+        }
+    }).trigger('change');
+    
+    // Test Google Sheets
+    $('#test-google-sheets').click(function() {
+        var $btn = $(this);
+        var $result = $('#google-sheets-result');
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Testing...');
+        $result.empty();
+        
+        var testData = {
+            spreadsheet_id: $('#google_spreadsheet_id').val(),
+            credentials_file: 'credentials.json' // Placeholder
+        };
+        
+        $.ajax({
+            url: '/api/test/google-sheets',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(testData),
+            success: function(response) {
+                if (response.status === 'success') {
+                    $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+                } else {
+                    $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi kết nối đến server</div>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Test Google Sheets');
+            }
+        });
+    });
+    
+    // Test n8n webhook
+    $('#test-n8n').click(function() {
+        var $btn = $(this);
+        var $result = $('#n8n-result');
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Testing...');
+        $result.empty();
+        
+        var testData = {
+            webhook_url: $('#n8n_webhook_url').val()
+        };
+        
+        $.ajax({
+            url: '/api/test/n8n',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(testData),
+            success: function(response) {
+                if (response.status === 'success') {
+                    $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+                } else {
+                    $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi kết nối đến server</div>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Test n8n');
+            }
+        });
+    });
+    
+    // Handle credentials file upload
+    $('#google_credentials_file').change(function() {
+        var file = this.files[0];
+        var $status = $('#credentials-status');
+
+        if (file) {
+            if (!file.name.endsWith('.json')) {
+                $status.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Chỉ chấp nhận file JSON</div>');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('file', file);
+
+            $status.html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-1"></i>Đang upload...</div>');
+
+            $.ajax({
+                url: '/api/upload/credentials',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $status.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' +
+                                   response.message + '<br><small>Project: ' + response.project_id + '</small></div>');
+                    } else {
+                        $status.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                    }
+                },
+                error: function() {
+                    $status.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi khi upload file</div>');
+                }
+            });
+        }
+    });
+
+    // Auto-fill default values
+    if (!$('#google_spreadsheet_id').val()) {
+        $('#google_spreadsheet_id').val('1u49-OHZttyVcNBwcDHg7rTff47JMrVvThtYqpv3V-ag');
+    }
+});
+</script>

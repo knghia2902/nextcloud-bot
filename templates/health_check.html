@@ -1,0 +1,616 @@
+{% extends "base.html" %}
+
+{% block title %}Health Check{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-heartbeat me-2"></i>System Health Check</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="runHealthCheck()">
+                        <i class="fas fa-sync me-1"></i>Run Health Check
+                    </button>
+                    <button class="btn btn-success" onclick="runFullDiagnostic()">
+                        <i class="fas fa-stethoscope me-1"></i>Full Diagnostic
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overall Health Status -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div id="overallHealthStatus">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Checking...</span>
+                                </div>
+                                <p class="mt-2">Checking system health...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Metrics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">System Uptime</h6>
+                                    <h6 id="system-uptime">0 days</h6>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">CPU Usage</h6>
+                                    <h3 id="cpu-usage">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-microchip fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Memory Usage</h6>
+                                    <h3 id="memory-usage">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-memory fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Disk Usage</h6>
+                                    <h3 id="disk-usage">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-hdd fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Service Status -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cogs me-2"></i>Service Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush" id="serviceStatusList">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Loading services...</span>
+                                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connection Status -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-network-wired me-2"></i>Connection Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush" id="connectionStatusList">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Loading connections...</span>
+                                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line me-2"></i>Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="cpuChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="memoryChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Check History -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history me-2"></i>Health Check History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Overall Status</th>
+                                    <th>CPU</th>
+                                    <th>Memory</th>
+                                    <th>Services</th>
+                                    <th>Connections</th>
+                                    <th>Issues</th>
+                                </tr>
+                            </thead>
+                            <tbody id="healthHistoryTable">
+                                <tr>
+                                    <td colspan="7" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        Loading health history...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Health Check Details Modal -->
+<div class="modal fade" id="healthDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Health Check Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="healthDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Running health check...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="exportHealthReport()">Export Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let cpuChart, memoryChart;
+let healthCheckInterval;
+
+// Load health data on page load
+$(document).ready(function() {
+    initializeCharts();
+    runHealthCheck();
+    loadHealthHistory();
+    
+    // Auto-refresh every 60 seconds
+    healthCheckInterval = setInterval(runHealthCheck, 60000);
+});
+
+function initializeCharts() {
+    // CPU Chart
+    const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+    cpuChart = new Chart(cpuCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'CPU Usage (%)',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'CPU Usage Over Time'
+                }
+            }
+        }
+    });
+
+    // Memory Chart
+    const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+    memoryChart = new Chart(memoryCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Memory Usage (%)',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Memory Usage Over Time'
+                }
+            }
+        }
+    });
+}
+
+function runHealthCheck() {
+    console.log('Running health check...');
+    
+    $.get('/api/health-check')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateHealthStatus(data.health);
+                updateCharts(data.health.metrics);
+            } else {
+                updateHealthStatus({
+                    overall_status: 'error',
+                    message: data.message || 'Health check failed'
+                });
+            }
+        })
+        .fail(function() {
+            updateHealthStatus({
+                overall_status: 'error',
+                message: 'Failed to run health check'
+            });
+        });
+}
+
+function updateHealthStatus(health) {
+    // Update overall status
+    const statusElement = $('#overallHealthStatus');
+    const status = health.overall_status || 'unknown';
+    
+    let statusHtml = '';
+    switch(status) {
+        case 'healthy':
+            statusHtml = `
+                <div class="text-success">
+                    <i class="fas fa-check-circle fa-4x mb-3"></i>
+                    <h3>System Healthy</h3>
+                    <p>All systems are operating normally</p>
+                </div>
+            `;
+            break;
+        case 'warning':
+            statusHtml = `
+                <div class="text-warning">
+                    <i class="fas fa-exclamation-triangle fa-4x mb-3"></i>
+                    <h3>System Warning</h3>
+                    <p>Some issues detected but system is functional</p>
+                </div>
+            `;
+            break;
+        case 'error':
+            statusHtml = `
+                <div class="text-danger">
+                    <i class="fas fa-times-circle fa-4x mb-3"></i>
+                    <h3>System Error</h3>
+                    <p>${health.message || 'Critical issues detected'}</p>
+                </div>
+            `;
+            break;
+        default:
+            statusHtml = `
+                <div class="text-secondary">
+                    <i class="fas fa-question-circle fa-4x mb-3"></i>
+                    <h3>Status Unknown</h3>
+                    <p>Unable to determine system status</p>
+                </div>
+            `;
+    }
+    
+    statusElement.html(statusHtml);
+    
+    // Update metrics
+    if (health.metrics) {
+        $('#system-uptime').text(health.metrics.uptime || '0 days');
+        $('#cpu-usage').text((health.metrics.cpu_usage || 0) + '%');
+        $('#memory-usage').text((health.metrics.memory_usage || 0) + '%');
+        $('#disk-usage').text((health.metrics.disk_usage || 0) + '%');
+    }
+    
+    // Update services
+    if (health.services) {
+        updateServiceStatus(health.services);
+    }
+    
+    // Update connections
+    if (health.connections) {
+        updateConnectionStatus(health.connections);
+    }
+}
+
+function updateServiceStatus(services) {
+    const list = $('#serviceStatusList');
+    list.empty();
+    
+    Object.entries(services).forEach(([service, status]) => {
+        const badge = getStatusBadge(status);
+        const item = `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-cog me-2"></i>${service}</span>
+                ${badge}
+            </div>
+        `;
+        list.append(item);
+    });
+}
+
+function updateConnectionStatus(connections) {
+    const list = $('#connectionStatusList');
+    list.empty();
+    
+    Object.entries(connections).forEach(([connection, status]) => {
+        const badge = getStatusBadge(status);
+        const item = `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-plug me-2"></i>${connection}</span>
+                ${badge}
+            </div>
+        `;
+        list.append(item);
+    });
+}
+
+function getStatusBadge(status) {
+    switch(status) {
+        case 'healthy':
+        case 'running':
+        case 'connected':
+            return '<span class="badge bg-success">Healthy</span>';
+        case 'warning':
+            return '<span class="badge bg-warning">Warning</span>';
+        case 'error':
+        case 'stopped':
+        case 'disconnected':
+            return '<span class="badge bg-danger">Error</span>';
+        default:
+            return '<span class="badge bg-secondary">Unknown</span>';
+    }
+}
+
+function updateCharts(metrics) {
+    if (!metrics) return;
+    
+    const now = new Date().toLocaleTimeString();
+    
+    // Update CPU chart
+    if (cpuChart) {
+        cpuChart.data.labels.push(now);
+        cpuChart.data.datasets[0].data.push(metrics.cpu_usage || 0);
+        
+        // Keep only last 20 data points
+        if (cpuChart.data.labels.length > 20) {
+            cpuChart.data.labels.shift();
+            cpuChart.data.datasets[0].data.shift();
+        }
+        
+        cpuChart.update();
+    }
+    
+    // Update Memory chart
+    if (memoryChart) {
+        memoryChart.data.labels.push(now);
+        memoryChart.data.datasets[0].data.push(metrics.memory_usage || 0);
+        
+        // Keep only last 20 data points
+        if (memoryChart.data.labels.length > 20) {
+            memoryChart.data.labels.shift();
+            memoryChart.data.datasets[0].data.shift();
+        }
+        
+        memoryChart.update();
+    }
+}
+
+function loadHealthHistory() {
+    $.get('/api/health-check/history')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateHealthHistoryTable(data.history || []);
+            } else {
+                $('#healthHistoryTable').html(`
+                    <tr>
+                        <td colspan="7" class="text-center text-warning">
+                            ${data.message || 'No health history available'}
+                        </td>
+                    </tr>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#healthHistoryTable').html(`
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        Failed to load health history
+                    </td>
+                </tr>
+            `);
+        });
+}
+
+function updateHealthHistoryTable(history) {
+    const tbody = $('#healthHistoryTable');
+    tbody.empty();
+    
+    if (history.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No health check history available
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    history.forEach(check => {
+        const overallBadge = getStatusBadge(check.overall_status);
+        const cpuBadge = getCpuStatusBadge(check.cpu_usage);
+        const memoryBadge = getMemoryStatusBadge(check.memory_usage);
+        const servicesBadge = getStatusBadge(check.services_status);
+        const connectionsBadge = getStatusBadge(check.connections_status);
+        
+        const row = `
+            <tr>
+                <td>${new Date(check.timestamp).toLocaleString()}</td>
+                <td>${overallBadge}</td>
+                <td>${cpuBadge}</td>
+                <td>${memoryBadge}</td>
+                <td>${servicesBadge}</td>
+                <td>${connectionsBadge}</td>
+                <td>${check.issues || 0}</td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function getCpuStatusBadge(usage) {
+    if (usage < 70) return `<span class="badge bg-success">${usage}%</span>`;
+    if (usage < 90) return `<span class="badge bg-warning">${usage}%</span>`;
+    return `<span class="badge bg-danger">${usage}%</span>`;
+}
+
+function getMemoryStatusBadge(usage) {
+    if (usage < 80) return `<span class="badge bg-success">${usage}%</span>`;
+    if (usage < 95) return `<span class="badge bg-warning">${usage}%</span>`;
+    return `<span class="badge bg-danger">${usage}%</span>`;
+}
+
+function runFullDiagnostic() {
+    $('#healthDetailsModal').modal('show');
+    
+    $.post('/api/health-check/diagnostic')
+        .done(function(data) {
+            if (data.status === 'success') {
+                displayDiagnosticResults(data.diagnostic);
+            } else {
+                $('#healthDetailsContent').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Diagnostic failed: ${data.message}
+                    </div>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#healthDetailsContent').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to run diagnostic
+                </div>
+            `);
+        });
+}
+
+function displayDiagnosticResults(diagnostic) {
+    let html = `
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle me-2"></i>Diagnostic Summary</h6>
+            <p>Overall Health: <strong>${diagnostic.overall_health}</strong></p>
+            <p>Issues Found: <strong>${diagnostic.issues_count}</strong></p>
+            <p>Recommendations: <strong>${diagnostic.recommendations_count}</strong></p>
+        </div>
+    `;
+    
+    if (diagnostic.details) {
+        html += '<h6>Detailed Results:</h6>';
+        html += '<div class="accordion" id="diagnosticAccordion">';
+        
+        Object.entries(diagnostic.details).forEach(([category, details], index) => {
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading${index}">
+                        <button class="accordion-button ${index === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                            ${category}
+                        </button>
+                    </h2>
+                    <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#diagnosticAccordion">
+                        <div class="accordion-body">
+                            <pre>${JSON.stringify(details, null, 2)}</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    $('#healthDetailsContent').html(html);
+}
+
+function exportHealthReport() {
+    window.open('/api/health-check/export', '_blank');
+}
+
+// Cleanup on page unload
+$(window).on('beforeunload', function() {
+    if (healthCheckInterval) {
+        clearInterval(healthCheckInterval);
+    }
+});
+</script>
+{% endblock %}

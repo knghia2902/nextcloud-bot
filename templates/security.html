@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+
+{% block title %}Security Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-shield-alt me-2"></i>Security Settings</h2>
+                <button class="btn btn-warning" onclick="runSecurityScan()">
+                    <i class="fas fa-search me-1"></i>Run Security Scan
+                </button>
+            </div>
+
+            <!-- Security Status -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Security Score</h6>
+                                    <h3 id="security-score">85%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Vulnerabilities</h6>
+                                    <h3 id="vulnerabilities">2</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Failed Logins</h6>
+                                    <h3 id="failed-logins">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-user-times fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Last Scan</h6>
+                                    <h6 id="last-scan">Never</h6>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Authentication Settings -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-key me-2"></i>Authentication</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Password Policy</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireStrongPassword" checked>
+                                    <label class="form-check-label" for="requireStrongPassword">
+                                        Require strong passwords (8+ chars, mixed case, numbers)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="forcePasswordChange">
+                                    <label class="form-check-label" for="forcePasswordChange">
+                                        Force password change every 90 days
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                                <input type="number" class="form-control" id="sessionTimeout" value="60" min="5" max="1440">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="maxLoginAttempts" class="form-label">Max Login Attempts</label>
+                                <input type="number" class="form-control" id="maxLoginAttempts" value="5" min="1" max="20">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lockoutDuration" class="form-label">Lockout Duration (minutes)</label>
+                                <input type="number" class="form-control" id="lockoutDuration" value="15" min="1" max="1440">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Access Control -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-users me-2"></i>Access Control</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">IP Restrictions</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableIpRestriction">
+                                    <label class="form-check-label" for="enableIpRestriction">
+                                        Enable IP address restrictions
+                                    </label>
+                                </div>
+                                <textarea class="form-control mt-2" id="allowedIps" rows="3" placeholder="192.168.1.0/24&#10;10.0.0.0/8" disabled></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">User Permissions</label>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="userPermissionsTable">
+                                            <tr>
+                                                <td>admin</td>
+                                                <td><span class="badge bg-danger">Super Admin</span></td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="editUser('admin')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- API Security -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-code me-2"></i>API Security</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Rate Limiting</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableRateLimit" checked>
+                                    <label class="form-check-label" for="enableRateLimit">
+                                        Enable API rate limiting
+                                    </label>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <label for="rateLimit" class="form-label">Requests per minute</label>
+                                        <input type="number" class="form-control" id="rateLimit" value="60" min="1" max="1000">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="burstLimit" class="form-label">Burst limit</label>
+                                        <input type="number" class="form-control" id="burstLimit" value="10" min="1" max="100">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">API Keys</label>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Current API key: <code>****-****-****-****</code></span>
+                                    <button class="btn btn-sm btn-warning" onclick="regenerateApiKey()">
+                                        <i class="fas fa-sync me-1"></i>Regenerate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Encryption & Privacy -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-lock me-2"></i>Encryption & Privacy</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Data Encryption</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="encryptMessages" checked>
+                                    <label class="form-check-label" for="encryptMessages">
+                                        Encrypt stored messages
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="encryptLogs">
+                                    <label class="form-check-label" for="encryptLogs">
+                                        Encrypt log files
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="encryptBackups" checked>
+                                    <label class="form-check-label" for="encryptBackups">
+                                        Encrypt backup files
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Data Retention</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="messageRetention" class="form-label">Messages (days)</label>
+                                        <input type="number" class="form-control" id="messageRetention" value="365" min="1" max="3650">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="logRetention" class="form-label">Logs (days)</label>
+                                        <input type="number" class="form-control" id="logRetention" value="90" min="1" max="365">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Audit Log -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clipboard-list me-2"></i>Security Audit Log</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event</th>
+                                    <th>User</th>
+                                    <th>IP Address</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogTable">
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        Loading audit log...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Scan Results Modal -->
+<div class="modal fade" id="securityScanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Security Scan Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="scanResults">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Scanning...</span>
+                        </div>
+                        <p class="mt-2">Running security scan...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="exportScanResults()">Export Results</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load security data on page load
+$(document).ready(function() {
+    loadSecurityStats();
+    loadAuditLog();
+    loadUserPermissions();
+    
+    // Enable/disable IP restriction textarea
+    $('#enableIpRestriction').change(function() {
+        $('#allowedIps').prop('disabled', !this.checked);
+    });
+});
+
+function loadSecurityStats() {
+    $.get('/api/security/stats')
+        .done(function(data) {
+            if (data.status === 'success') {
+                $('#security-score').text(data.security_score + '%');
+                $('#vulnerabilities').text(data.vulnerabilities || 0);
+                $('#failed-logins').text(data.failed_logins || 0);
+                $('#last-scan').text(data.last_scan || 'Never');
+            }
+        })
+        .fail(function() {
+            console.log('Failed to load security stats');
+        });
+}
+
+function loadAuditLog() {
+    $.get('/api/security/audit-log')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateAuditLogTable(data.events || []);
+            } else {
+                $('#auditLogTable').html(`
+                    <tr>
+                        <td colspan="6" class="text-center text-warning">
+                            ${data.message || 'No audit events available'}
+                        </td>
+                    </tr>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#auditLogTable').html(`
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Failed to load audit log
+                    </td>
+                </tr>
+            `);
+        });
+}
+
+function updateAuditLogTable(events) {
+    const tbody = $('#auditLogTable');
+    tbody.empty();
+    
+    if (events.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    No security events recorded
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    events.forEach(event => {
+        const statusBadge = getEventStatusBadge(event.status);
+        const row = `
+            <tr>
+                <td>${new Date(event.timestamp).toLocaleString()}</td>
+                <td>${event.event_type}</td>
+                <td>${event.user || '-'}</td>
+                <td>${event.ip_address || '-'}</td>
+                <td>${statusBadge}</td>
+                <td>${event.details || '-'}</td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function getEventStatusBadge(status) {
+    switch(status) {
+        case 'success': return '<span class="badge bg-success">Success</span>';
+        case 'failed': return '<span class="badge bg-danger">Failed</span>';
+        case 'warning': return '<span class="badge bg-warning">Warning</span>';
+        default: return '<span class="badge bg-secondary">Unknown</span>';
+    }
+}
+
+function loadUserPermissions() {
+    $.get('/api/security/users')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateUserPermissionsTable(data.users || []);
+            }
+        })
+        .fail(function() {
+            console.log('Failed to load user permissions');
+        });
+}
+
+function updateUserPermissionsTable(users) {
+    const tbody = $('#userPermissionsTable');
+    tbody.empty();
+    
+    users.forEach(user => {
+        const roleBadge = getRoleBadge(user.role);
+        const statusBadge = user.active ? 
+            '<span class="badge bg-success">Active</span>' : 
+            '<span class="badge bg-secondary">Inactive</span>';
+            
+        const row = `
+            <tr>
+                <td>${user.username}</td>
+                <td>${roleBadge}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editUser('${user.username}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function getRoleBadge(role) {
+    switch(role) {
+        case 'super_admin': return '<span class="badge bg-danger">Super Admin</span>';
+        case 'admin': return '<span class="badge bg-warning">Admin</span>';
+        case 'moderator': return '<span class="badge bg-info">Moderator</span>';
+        case 'user': return '<span class="badge bg-primary">User</span>';
+        default: return '<span class="badge bg-secondary">Unknown</span>';
+    }
+}
+
+function runSecurityScan() {
+    $('#securityScanModal').modal('show');
+    
+    $.post('/api/security/scan')
+        .done(function(data) {
+            if (data.status === 'success') {
+                displayScanResults(data.results);
+            } else {
+                $('#scanResults').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Security scan failed: ${data.message}
+                    </div>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#scanResults').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to run security scan
+                </div>
+            `);
+        });
+}
+
+function displayScanResults(results) {
+    let html = `
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle me-2"></i>Scan Summary</h6>
+            <p>Security Score: <strong>${results.score}%</strong></p>
+            <p>Issues Found: <strong>${results.issues.length}</strong></p>
+        </div>
+    `;
+    
+    if (results.issues.length > 0) {
+        html += '<h6>Issues Found:</h6><ul class="list-group">';
+        results.issues.forEach(issue => {
+            const severity = issue.severity || 'medium';
+            const badgeClass = severity === 'high' ? 'danger' : severity === 'medium' ? 'warning' : 'info';
+            html += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${issue.description}
+                    <span class="badge bg-${badgeClass}">${severity}</span>
+                </li>
+            `;
+        });
+        html += '</ul>';
+    } else {
+        html += '<div class="alert alert-success">No security issues found!</div>';
+    }
+    
+    $('#scanResults').html(html);
+    loadSecurityStats(); // Refresh stats
+}
+
+function saveSecuritySettings() {
+    const settings = {
+        require_strong_password: $('#requireStrongPassword').is(':checked'),
+        force_password_change: $('#forcePasswordChange').is(':checked'),
+        session_timeout: $('#sessionTimeout').val(),
+        max_login_attempts: $('#maxLoginAttempts').val(),
+        lockout_duration: $('#lockoutDuration').val(),
+        enable_ip_restriction: $('#enableIpRestriction').is(':checked'),
+        allowed_ips: $('#allowedIps').val(),
+        enable_rate_limit: $('#enableRateLimit').is(':checked'),
+        rate_limit: $('#rateLimit').val(),
+        burst_limit: $('#burstLimit').val(),
+        encrypt_messages: $('#encryptMessages').is(':checked'),
+        encrypt_logs: $('#encryptLogs').is(':checked'),
+        encrypt_backups: $('#encryptBackups').is(':checked'),
+        message_retention: $('#messageRetention').val(),
+        log_retention: $('#logRetention').val()
+    };
+    
+    $.post('/api/security/settings', settings)
+        .done(function(data) {
+            if (data.status === 'success') {
+                alert('Security settings saved successfully');
+            } else {
+                alert('Failed to save settings: ' + data.message);
+            }
+        })
+        .fail(function() {
+            alert('Failed to save security settings');
+        });
+}
+
+function regenerateApiKey() {
+    if (confirm('Are you sure you want to regenerate the API key? This will invalidate the current key.')) {
+        $.post('/api/security/regenerate-api-key')
+            .done(function(data) {
+                if (data.status === 'success') {
+                    alert('API key regenerated successfully');
+                } else {
+                    alert('Failed to regenerate API key: ' + data.message);
+                }
+            })
+            .fail(function() {
+                alert('Failed to regenerate API key');
+            });
+    }
+}
+
+function editUser(username) {
+    console.log('Editing user:', username);
+    // Implementation for editing user permissions
+}
+
+function exportScanResults() {
+    window.open('/api/security/scan/export', '_blank');
+}
+
+// Auto-save settings when changed
+$('input, select').change(function() {
+    // Debounce auto-save
+    clearTimeout(window.autoSaveTimeout);
+    window.autoSaveTimeout = setTimeout(saveSecuritySettings, 2000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,573 @@
+{% extends "base.html" %}
+
+{% block title %}Debug Tools{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-bug me-2"></i>Debug Tools</h2>
+                <div>
+                    <button class="btn btn-warning" onclick="clearDebugData()">
+                        <i class="fas fa-trash me-1"></i>Clear Debug Data
+                    </button>
+                    <button class="btn btn-info" onclick="exportDebugInfo()">
+                        <i class="fas fa-download me-1"></i>Export Debug Info
+                    </button>
+                </div>
+            </div>
+
+            <!-- Debug Status -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Debug Mode</h6>
+                                    <h6 id="debug-mode">Enabled</h6>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-bug fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Log Level</h6>
+                                    <h6 id="log-level">DEBUG</h6>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-list fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Memory Usage</h6>
+                                    <h6 id="memory-usage">0 MB</h6>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-memory fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Errors Today</h6>
+                                    <h3 id="errors-today">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- System Information -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle me-2"></i>System Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tbody id="systemInfoTable">
+                                    <tr><td colspan="2" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Debug -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cog me-2"></i>Configuration Debug</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="testNextcloudConnection()">
+                                    Test Nextcloud
+                                </button>
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="testOpenRouterConnection()">
+                                    Test OpenRouter
+                                </button>
+                                <button class="btn btn-sm btn-outline-info me-2" onclick="testN8nConnection()">
+                                    Test n8n
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="testDatabaseConnection()">
+                                    Test Database
+                                </button>
+                            </div>
+                            <div id="connectionResults">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Click buttons above to test connections
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Tools -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-terminal me-2"></i>API Testing</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="apiEndpoint" class="form-label">Endpoint</label>
+                                <select class="form-select" id="apiEndpoint">
+                                    <option value="/api/bot/status">Bot Status</option>
+                                    <option value="/api/rooms">Rooms List</option>
+                                    <option value="/api/config/status">Config Status</option>
+                                    <option value="/api/health">Health Check</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="apiMethod" class="form-label">Method</label>
+                                <select class="form-select" id="apiMethod">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="apiPayload" class="form-label">Payload (JSON)</label>
+                                <textarea class="form-control" id="apiPayload" rows="3" placeholder='{"key": "value"}'></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="testApiEndpoint()">
+                                <i class="fas fa-play me-1"></i>Test API
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-robot me-2"></i>Bot Testing</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="testRoom" class="form-label">Test Room</label>
+                                <select class="form-select" id="testRoom">
+                                    <option value="">Select Room</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="testCommand" class="form-label">Test Command</label>
+                                <input type="text" class="form-control" id="testCommand" placeholder="!help" value="!help">
+                            </div>
+                            <div class="mb-3">
+                                <label for="testMessage" class="form-label">Test Message</label>
+                                <textarea class="form-control" id="testMessage" rows="2" placeholder="Test message for bot"></textarea>
+                            </div>
+                            <button class="btn btn-success me-2" onclick="testBotCommand()">
+                                <i class="fas fa-terminal me-1"></i>Test Command
+                            </button>
+                            <button class="btn btn-info" onclick="testBotMessage()">
+                                <i class="fas fa-comment me-1"></i>Test Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-database me-2"></i>Database Debug</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="sqlQuery" class="form-label">Test Query</label>
+                                <textarea class="form-control" id="sqlQuery" rows="3" placeholder="SELECT * FROM users LIMIT 5"></textarea>
+                            </div>
+                            <button class="btn btn-warning me-2" onclick="executeSqlQuery()">
+                                <i class="fas fa-play me-1"></i>Execute
+                            </button>
+                            <button class="btn btn-secondary" onclick="showDatabaseSchema()">
+                                <i class="fas fa-table me-1"></i>Schema
+                            </button>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Be careful with database queries
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Output -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-code me-2"></i>Debug Output</h5>
+                    <button class="btn btn-sm btn-outline-secondary float-end" onclick="clearDebugOutput()">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </button>
+                </div>
+                <div class="card-body">
+                    <pre id="debugOutput" style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px;">
+Debug output will appear here...
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load debug data on page load
+$(document).ready(function() {
+    loadSystemInfo();
+    loadDebugStats();
+    loadRooms();
+    
+    // Auto-refresh debug stats every 30 seconds
+    setInterval(loadDebugStats, 30000);
+});
+
+function loadSystemInfo() {
+    $.get('/api/debug/system-info')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateSystemInfoTable(data.info);
+            } else {
+                $('#systemInfoTable').html('<tr><td colspan="2" class="text-danger">Failed to load system info</td></tr>');
+            }
+        })
+        .fail(function() {
+            $('#systemInfoTable').html('<tr><td colspan="2" class="text-danger">Failed to load system info</td></tr>');
+        });
+}
+
+function updateSystemInfoTable(info) {
+    const tbody = $('#systemInfoTable');
+    tbody.empty();
+    
+    Object.entries(info).forEach(([key, value]) => {
+        const row = `
+            <tr>
+                <td><strong>${key}</strong></td>
+                <td>${value}</td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function loadDebugStats() {
+    $.get('/api/debug/stats')
+        .done(function(data) {
+            if (data.status === 'success') {
+                $('#debug-mode').text(data.debug_mode ? 'Enabled' : 'Disabled');
+                $('#log-level').text(data.log_level || 'INFO');
+                $('#memory-usage').text(data.memory_usage || '0 MB');
+                $('#errors-today').text(data.errors_today || 0);
+            }
+        })
+        .fail(function() {
+            console.log('Failed to load debug stats');
+        });
+}
+
+function loadRooms() {
+    $.get('/api/rooms')
+        .done(function(data) {
+            if (data.status === 'success') {
+                const rooms = data.rooms || [];
+                const roomSelect = $('#testRoom');
+                roomSelect.empty().append('<option value="">Select Room</option>');
+                
+                rooms.forEach(room => {
+                    roomSelect.append(`<option value="${room.room_id}">${room.room_name}</option>`);
+                });
+            }
+        });
+}
+
+function testNextcloudConnection() {
+    appendDebugOutput('Testing Nextcloud connection...');
+    
+    $.post('/api/test-connection', {type: 'nextcloud'})
+        .done(function(data) {
+            if (data.success) {
+                appendDebugOutput('✅ Nextcloud connection successful');
+                updateConnectionResult('nextcloud', 'success', data.message);
+            } else {
+                appendDebugOutput('❌ Nextcloud connection failed: ' + data.message);
+                updateConnectionResult('nextcloud', 'error', data.message);
+            }
+        })
+        .fail(function() {
+            appendDebugOutput('❌ Nextcloud connection test failed');
+            updateConnectionResult('nextcloud', 'error', 'Connection test failed');
+        });
+}
+
+function testOpenRouterConnection() {
+    appendDebugOutput('Testing OpenRouter connection...');
+    
+    $.post('/api/test-connection', {type: 'openrouter'})
+        .done(function(data) {
+            if (data.success) {
+                appendDebugOutput('✅ OpenRouter connection successful');
+                updateConnectionResult('openrouter', 'success', data.message);
+            } else {
+                appendDebugOutput('❌ OpenRouter connection failed: ' + data.message);
+                updateConnectionResult('openrouter', 'error', data.message);
+            }
+        })
+        .fail(function() {
+            appendDebugOutput('❌ OpenRouter connection test failed');
+            updateConnectionResult('openrouter', 'error', 'Connection test failed');
+        });
+}
+
+function testN8nConnection() {
+    appendDebugOutput('Testing n8n connection...');
+    
+    $.post('/api/test-connection', {type: 'n8n'})
+        .done(function(data) {
+            if (data.success) {
+                appendDebugOutput('✅ n8n connection successful');
+                updateConnectionResult('n8n', 'success', data.message);
+            } else {
+                appendDebugOutput('❌ n8n connection failed: ' + data.message);
+                updateConnectionResult('n8n', 'error', data.message);
+            }
+        })
+        .fail(function() {
+            appendDebugOutput('❌ n8n connection test failed');
+            updateConnectionResult('n8n', 'error', 'Connection test failed');
+        });
+}
+
+function testDatabaseConnection() {
+    appendDebugOutput('Testing database connection...');
+    
+    $.post('/api/test-connection', {type: 'database'})
+        .done(function(data) {
+            if (data.success) {
+                appendDebugOutput('✅ Database connection successful');
+                updateConnectionResult('database', 'success', data.message);
+            } else {
+                appendDebugOutput('❌ Database connection failed: ' + data.message);
+                updateConnectionResult('database', 'error', data.message);
+            }
+        })
+        .fail(function() {
+            appendDebugOutput('❌ Database connection test failed');
+            updateConnectionResult('database', 'error', 'Connection test failed');
+        });
+}
+
+function updateConnectionResult(service, status, message) {
+    const alertClass = status === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = status === 'success' ? 'fas fa-check-circle' : 'fas fa-times-circle';
+    
+    const result = `
+        <div class="alert ${alertClass} alert-dismissible fade show">
+            <i class="${icon} me-2"></i>
+            <strong>${service}:</strong> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    $('#connectionResults').prepend(result);
+}
+
+function testApiEndpoint() {
+    const endpoint = $('#apiEndpoint').val();
+    const method = $('#apiMethod').val();
+    const payload = $('#apiPayload').val();
+    
+    appendDebugOutput(`Testing API: ${method} ${endpoint}`);
+    
+    let requestData = {
+        url: endpoint,
+        method: method,
+        dataType: 'json'
+    };
+    
+    if (payload && (method === 'POST' || method === 'PUT')) {
+        try {
+            requestData.data = JSON.parse(payload);
+            requestData.contentType = 'application/json';
+        } catch (e) {
+            appendDebugOutput('❌ Invalid JSON payload: ' + e.message);
+            return;
+        }
+    }
+    
+    $.ajax(requestData)
+        .done(function(data) {
+            appendDebugOutput('✅ API Response:');
+            appendDebugOutput(JSON.stringify(data, null, 2));
+        })
+        .fail(function(xhr) {
+            appendDebugOutput('❌ API Error: ' + xhr.status + ' ' + xhr.statusText);
+            if (xhr.responseText) {
+                appendDebugOutput(xhr.responseText);
+            }
+        });
+}
+
+function testBotCommand() {
+    const room = $('#testRoom').val();
+    const command = $('#testCommand').val();
+    
+    if (!room || !command) {
+        alert('Please select a room and enter a command');
+        return;
+    }
+    
+    appendDebugOutput(`Testing bot command: ${command} in room ${room}`);
+    
+    $.post('/api/debug/test-command', {
+        room_id: room,
+        command: command
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            appendDebugOutput('✅ Command test successful:');
+            appendDebugOutput(JSON.stringify(data.result, null, 2));
+        } else {
+            appendDebugOutput('❌ Command test failed: ' + data.message);
+        }
+    })
+    .fail(function() {
+        appendDebugOutput('❌ Command test failed');
+    });
+}
+
+function testBotMessage() {
+    const room = $('#testRoom').val();
+    const message = $('#testMessage').val();
+    
+    if (!room || !message) {
+        alert('Please select a room and enter a message');
+        return;
+    }
+    
+    appendDebugOutput(`Testing bot message: "${message}" in room ${room}`);
+    
+    $.post('/api/debug/test-message', {
+        room_id: room,
+        message: message
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            appendDebugOutput('✅ Message test successful:');
+            appendDebugOutput(JSON.stringify(data.result, null, 2));
+        } else {
+            appendDebugOutput('❌ Message test failed: ' + data.message);
+        }
+    })
+    .fail(function() {
+        appendDebugOutput('❌ Message test failed');
+    });
+}
+
+function executeSqlQuery() {
+    const query = $('#sqlQuery').val();
+    
+    if (!query) {
+        alert('Please enter a SQL query');
+        return;
+    }
+    
+    appendDebugOutput(`Executing SQL: ${query}`);
+    
+    $.post('/api/debug/sql', {query: query})
+        .done(function(data) {
+            if (data.status === 'success') {
+                appendDebugOutput('✅ Query executed successfully:');
+                appendDebugOutput(JSON.stringify(data.result, null, 2));
+            } else {
+                appendDebugOutput('❌ Query failed: ' + data.message);
+            }
+        })
+        .fail(function() {
+            appendDebugOutput('❌ Query execution failed');
+        });
+}
+
+function showDatabaseSchema() {
+    appendDebugOutput('Loading database schema...');
+    
+    $.get('/api/debug/schema')
+        .done(function(data) {
+            if (data.status === 'success') {
+                appendDebugOutput('✅ Database schema:');
+                appendDebugOutput(JSON.stringify(data.schema, null, 2));
+            } else {
+                appendDebugOutput('❌ Failed to load schema: ' + data.message);
+            }
+        })
+        .fail(function() {
+            appendDebugOutput('❌ Failed to load database schema');
+        });
+}
+
+function appendDebugOutput(text) {
+    const timestamp = new Date().toLocaleTimeString();
+    const output = $('#debugOutput');
+    output.append(`[${timestamp}] ${text}\n`);
+    output.scrollTop(output[0].scrollHeight);
+}
+
+function clearDebugOutput() {
+    $('#debugOutput').text('Debug output cleared...\n');
+}
+
+function clearDebugData() {
+    if (confirm('Are you sure you want to clear all debug data?')) {
+        $.post('/api/debug/clear')
+            .done(function(data) {
+                if (data.status === 'success') {
+                    alert('Debug data cleared successfully');
+                    clearDebugOutput();
+                    loadDebugStats();
+                } else {
+                    alert('Failed to clear debug data: ' + data.message);
+                }
+            })
+            .fail(function() {
+                alert('Failed to clear debug data');
+            });
+    }
+}
+
+function exportDebugInfo() {
+    window.open('/api/debug/export', '_blank');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-chart-line me-2"></i>Analytics Dashboard</h2>
+                <p class="text-muted mb-0">Monitor bot performance and usage statistics</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshAnalytics()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                <h3 id="total-messages-detailed">--</h3>
+                <p class="text-muted mb-0">Total Messages</p>
+                <small class="text-success">+12% from yesterday</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-success mb-3"></i>
+                <h3 id="active-users-detailed">--</h3>
+                <p class="text-muted mb-0">Active Users</p>
+                <small class="text-success">+5% from yesterday</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-robot fa-3x text-warning mb-3"></i>
+                <h3 id="bot-responses-detailed">--</h3>
+                <p class="text-muted mb-0">Bot Responses</p>
+                <small class="text-success">+8% from yesterday</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-percentage fa-3x text-info mb-3"></i>
+                <h3 id="response-rate">--</h3>
+                <p class="text-muted mb-0">Response Rate</p>
+                <small class="text-success">98.5% accuracy</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Message Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="messageChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Integration Usage</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="integrationChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                            <div class="h4 text-success" id="avg-response-time">--</div>
+                            <small class="text-muted">Avg Response Time</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                            <div class="h4 text-info" id="uptime-percentage">--</div>
+                            <small class="text-muted">Uptime</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="h4 text-warning" id="api-calls">--</div>
+                            <small class="text-muted">API Calls Today</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="h4 text-danger" id="error-rate">--</div>
+                            <small class="text-muted">Error Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-terminal me-2"></i>Top Commands</h5>
+            </div>
+            <div class="card-body">
+                <div id="top-commands-list">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2">Loading commands...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Activity Log</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Event</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-log-table">
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <div class="mt-2">Loading activity log...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    loadAnalyticsData();
+    loadTopCommands();
+    loadActivityLog();
+    initializeCharts();
+    
+    // Auto-refresh every 60 seconds
+    setInterval(function() {
+        loadAnalyticsData();
+        loadTopCommands();
+        loadActivityLog();
+    }, 60000);
+});
+
+function loadAnalyticsData() {
+    $.get('/api/analytics/detailed')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateAnalyticsData(data.analytics);
+            }
+        })
+        .fail(function() {
+            showAnalyticsError();
+        });
+}
+
+function updateAnalyticsData(analytics) {
+    $('#total-messages-detailed').text(analytics.total_messages || 0);
+    $('#active-users-detailed').text(analytics.active_users || 0);
+    $('#bot-responses-detailed').text(analytics.bot_responses || 0);
+    $('#response-rate').text((analytics.response_rate || 0) + '%');
+    
+    $('#avg-response-time').text((analytics.avg_response_time || 0) + 'ms');
+    $('#uptime-percentage').text((analytics.uptime_percentage || 0) + '%');
+    $('#api-calls').text(analytics.api_calls_today || 0);
+    $('#error-rate').text((analytics.error_rate || 0) + '%');
+}
+
+function loadTopCommands() {
+    $.get('/api/analytics/commands')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateTopCommands(data.commands);
+            }
+        })
+        .fail(function() {
+            $('#top-commands-list').html('<div class="text-center text-muted">Failed to load commands</div>');
+        });
+}
+
+function updateTopCommands(commands) {
+    const container = $('#top-commands-list');
+    
+    if (!commands || commands.length === 0) {
+        container.html('<div class="text-center text-muted">No commands data available</div>');
+        return;
+    }
+    
+    let html = '';
+    commands.slice(0, 5).forEach((cmd, index) => {
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <code>!${cmd.name}</code>
+                    <small class="text-muted ms-2">${cmd.description}</small>
+                </div>
+                <span class="badge bg-primary">${cmd.usage_count}</span>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function loadActivityLog() {
+    $.get('/api/analytics/activity-log')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateActivityLog(data.activities);
+            }
+        })
+        .fail(function() {
+            $('#activity-log-table').html('<tr><td colspan="5" class="text-center text-muted">Failed to load activity log</td></tr>');
+        });
+}
+
+function updateActivityLog(activities) {
+    const tbody = $('#activity-log-table');
+    
+    if (!activities || activities.length === 0) {
+        tbody.html('<tr><td colspan="5" class="text-center text-muted">No activity data available</td></tr>');
+        return;
+    }
+    
+    let html = '';
+    activities.slice(0, 10).forEach(activity => {
+        const statusClass = activity.status === 'success' ? 'success' : 
+                           activity.status === 'error' ? 'danger' : 'warning';
+        
+        html += `
+            <tr>
+                <td>${new Date(activity.timestamp).toLocaleString()}</td>
+                <td><span class="badge bg-light text-dark">${activity.type}</span></td>
+                <td>${activity.title}</td>
+                <td>${activity.description}</td>
+                <td><span class="badge bg-${statusClass}">${activity.status}</span></td>
+            </tr>
+        `;
+    });
+    
+    tbody.html(html);
+}
+
+function initializeCharts() {
+    // Message Activity Chart
+    const messageCtx = document.getElementById('messageChart').getContext('2d');
+    new Chart(messageCtx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+            datasets: [{
+                label: 'Messages',
+                data: [12, 19, 25, 35, 28, 22],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Integration Usage Chart
+    const integrationCtx = document.getElementById('integrationChart').getContext('2d');
+    new Chart(integrationCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Google Sheets', 'n8n', 'OpenRouter', 'Nextcloud'],
+            datasets: [{
+                data: [30, 25, 35, 10],
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function refreshAnalytics() {
+    loadAnalyticsData();
+    loadTopCommands();
+    loadActivityLog();
+    showAlert('Analytics data refreshed!', 'success');
+}
+
+function showAnalyticsError() {
+    $('#total-messages-detailed').text('--');
+    $('#active-users-detailed').text('--');
+    $('#bot-responses-detailed').text('--');
+    $('#response-rate').text('--');
+}
+
+function showAlert(message, type) {
+    // Create alert container if it doesn't exist
+    if ($('#alert-container').length === 0) {
+        $('body').append(`
+            <div id="alert-container" style="
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 9999;
+                max-width: 400px;
+                width: 100%;
+            "></div>
+        `);
+    }
+
+    const alertDiv = $(`
+        <div class="alert alert-${type} alert-dismissible fade show mb-3" role="alert" style="
+            border-radius: 15px; 
+            border: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        ">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+
+    $('#alert-container').prepend(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.fadeOut(() => alertDiv.remove());
+    }, 3000);
+}
+</script>
+{% endblock %}

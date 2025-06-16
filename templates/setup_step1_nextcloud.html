@@ -1,0 +1,173 @@
+<div class="step-content">
+    <h4><i class="fas fa-cloud me-2"></i>Bước 1: Cấu hình Nextcloud</h4>
+    <p class="text-muted">Kết nối bot với Nextcloud server của bạn</p>
+    
+    <form id="nextcloud-form">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="nextcloud_url" class="form-label">
+                        <i class="fas fa-link me-1"></i>Nextcloud URL *
+                    </label>
+                    <input type="url" class="form-control" id="nextcloud_url" name="url"
+                           value="{{ config.get('nextcloud', {}).get('url', 'https://ncl.khacnghia.xyz') }}"
+                           placeholder="https://your-nextcloud.com" required>
+                    <div class="form-text">URL đầy đủ của Nextcloud server</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="nextcloud_username" class="form-label">
+                        <i class="fas fa-user me-1"></i>Username *
+                    </label>
+                    <input type="text" class="form-control" id="nextcloud_username" name="username"
+                           value="{{ config.get('nextcloud', {}).get('username', 'bot_user') }}"
+                           placeholder="bot_user" required>
+                    <div class="form-text">Tên đăng nhập bot trong Nextcloud</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="nextcloud_password" class="form-label">
+                        <i class="fas fa-key me-1"></i>App Password *
+                    </label>
+                    <input type="password" class="form-control" id="nextcloud_password" name="password"
+                           value="{{ config.get('nextcloud', {}).get('password', 'Hpc!@#123456') }}"
+                           placeholder="App password từ Nextcloud" required>
+                    <div class="form-text">App password (không phải mật khẩu thường)</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="nextcloud_room_id" class="form-label">
+                        <i class="fas fa-comments me-1"></i>Default Room ID
+                    </label>
+                    <input type="text" class="form-control" id="nextcloud_room_id" name="room_id"
+                           value="{{ config.get('nextcloud', {}).get('room_id', 'cfrcv8if') }}"
+                           placeholder="cfrcv8if">
+                    <div class="form-text">Room ID mặc định để test (tùy chọn)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="nextcloud_enabled" name="enabled"
+                           {{ 'checked' if config.get('nextcloud', {}).get('enabled', True) != false else '' }}>
+                    <label class="form-check-label" for="nextcloud_enabled">
+                        Kích hoạt kết nối Nextcloud
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Connection -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-vial me-1"></i>Test Connection
+                        </h6>
+                        <p class="card-text text-muted">Kiểm tra kết nối với Nextcloud server</p>
+                        <button type="button" id="test-nextcloud" class="btn btn-outline-primary">
+                            <i class="fas fa-play me-1"></i>Test Connection
+                        </button>
+                        <div id="test-result" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Help Section -->
+    <div class="row mt-4" id="help-section">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle me-1"></i>Hướng dẫn
+                </div>
+                <div class="card-body">
+                    <h6>Cách tạo App Password trong Nextcloud:</h6>
+                    <ol>
+                        <li>Đăng nhập vào Nextcloud với tài khoản bot</li>
+                        <li>Vào <strong>Settings</strong> → <strong>Security</strong></li>
+                        <li>Trong phần <strong>App passwords</strong>, tạo password mới</li>
+                        <li>Đặt tên: "NextcloudBot" và click <strong>Create new app password</strong></li>
+                        <li>Copy password được tạo và paste vào trường App Password ở trên</li>
+                    </ol>
+
+                    <h6 class="mt-3">Cách tìm Room ID:</h6>
+                    <ol>
+                        <li>Vào Nextcloud Talk</li>
+                        <li>Mở room muốn sử dụng</li>
+                        <li>Xem URL, Room ID là phần sau <code>/call/</code></li>
+                        <li>Ví dụ: <code>https://nextcloud.com/call/cfrcv8if</code> → Room ID: <code>cfrcv8if</code></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<script>
+$(document).ready(function() {
+    // Test Nextcloud connection
+    $('#test-nextcloud').click(function() {
+        var $btn = $(this);
+        var $result = $('#test-result');
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Testing...');
+        $result.empty();
+        
+        var testData = {
+            url: $('#nextcloud_url').val(),
+            username: $('#nextcloud_username').val(),
+            password: $('#nextcloud_password').val(),
+            room_id: $('#nextcloud_room_id').val()
+        };
+        
+        $.ajax({
+            url: '/api/test/nextcloud',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(testData),
+            success: function(response) {
+                if (response.status === 'success') {
+                    $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+                } else {
+                    $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi kết nối đến server</div>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Test Connection');
+            }
+        });
+    });
+    
+    // Auto-fill default values if empty
+    if (!$('#nextcloud_url').val()) {
+        $('#nextcloud_url').val('https://ncl.khacnghia.xyz');
+    }
+    if (!$('#nextcloud_username').val()) {
+        $('#nextcloud_username').val('bot_user');
+    }
+    if (!$('#nextcloud_room_id').val()) {
+        $('#nextcloud_room_id').val('cfrcv8if');
+    }
+
+
+});
+</script>

@@ -1,0 +1,1531 @@
+{% extends "base.html" %}
+
+{% block title %}Integrations Management - Nextcloud Bot{% endblock %}
+
+{% block extra_css %}
+<style>
+.integration-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    border: none;
+    border-radius: 20px;
+    transition: all 0.4s ease;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.integration-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.integration-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.integration-card:hover::before {
+    opacity: 1;
+}
+
+.integration-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.integration-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    border-radius: 20px;
+}
+
+.integration-card:hover .integration-icon {
+    transform: scale(1.1);
+}
+
+.integration-card .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 280px;
+}
+
+.integration-card .card-body p {
+    flex-grow: 1;
+    margin-bottom: 1rem;
+}
+
+.stats-overview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    color: white;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stats-item {
+    text-align: center;
+    padding: 1rem;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.integration-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.status-active { background: #28a745; }
+.status-inactive { background: #6c757d; }
+.status-error { background: #dc3545; }
+
+.configure-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 15px;
+    padding: 12px 24px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.configure-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+.integration-category {
+    margin-bottom: 3rem;
+}
+
+.category-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.category-subtitle {
+    color: rgba(255,255,255,0.8);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.configured-integrations {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-top: 3rem;
+}
+
+.table-modern {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.table-modern thead {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+
+.table-modern th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.table-modern td {
+    border: none;
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.table-modern tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-modern tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: scale(1.01);
+}
+
+.action-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.icon-nextcloud { background: linear-gradient(135deg, #0082c9, #00a0d1); }
+.icon-google { background: linear-gradient(135deg, #4285f4, #34a853); }
+.icon-n8n { background: linear-gradient(135deg, #ea4b71, #ff6b6b); }
+.icon-openrouter { background: linear-gradient(135deg, #ff9500, #ffb347); }
+.icon-telegram { background: linear-gradient(135deg, #0088cc, #229ed9); }
+.icon-teams { background: linear-gradient(135deg, #464eb8, #6264a7); }
+.icon-slack { background: linear-gradient(135deg, #4a154b, #611f69); }
+.icon-discord { background: linear-gradient(135deg, #5865f2, #7289da); }
+.icon-webhook { background: linear-gradient(135deg, #6c757d, #495057); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-6 fw-bold text-white mb-2">
+                <i class="fas fa-plug me-3"></i>Integrations Management
+            </h1>
+            <p class="text-white-50 mb-0">Connect your bot with external services and platforms</p>
+        </div>
+        <button class="btn btn-light configure-btn" data-bs-toggle="modal" data-bs-target="#addIntegrationModal">
+            <i class="fas fa-plus me-2"></i>Add Integration
+        </button>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-item">
+                    <div class="stats-number" id="total-integrations">0</div>
+                    <div class="stats-label">Total Integrations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-item">
+                    <div class="stats-number" id="active-integrations">0</div>
+                    <div class="stats-label">Active</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-item">
+                    <div class="stats-number" id="error-integrations">0</div>
+                    <div class="stats-label">Errors</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-item">
+                    <div class="stats-number" id="api-calls-today">0</div>
+                    <div class="stats-label">API Calls Today</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Integrations -->
+    <div class="integration-category">
+        <h3 class="category-title">
+            <i class="fas fa-star me-2"></i>Core Integrations
+        </h3>
+        <p class="category-subtitle">Essential services for bot functionality</p>
+        
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-nextcloud">
+                            <i class="fas fa-cloud fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Nextcloud Talk</h5>
+                        <p class="text-muted mb-3">Primary communication platform for bot interactions</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('nextcloud')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-openrouter">
+                            <i class="fas fa-brain fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">OpenRouter AI</h5>
+                        <p class="text-muted mb-3">AI-powered responses and natural language processing</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('openrouter')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-google">
+                            <i class="fab fa-google fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Google Sheets</h5>
+                        <p class="text-muted mb-3">Data storage and conversation logging</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('google_sheets')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Communication Platforms -->
+    <div class="integration-category">
+        <h3 class="category-title">
+            <i class="fas fa-comments me-2"></i>Communication Platforms
+        </h3>
+        <p class="category-subtitle">Extend bot reach across multiple messaging platforms</p>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-telegram">
+                            <i class="fab fa-telegram fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Telegram Bot</h5>
+                        <p class="text-muted mb-3">Connect to Telegram for instant messaging and bot commands</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('telegram')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-teams">
+                            <i class="fab fa-microsoft fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Microsoft Teams</h5>
+                        <p class="text-muted mb-3">Enterprise communication and collaboration platform</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('teams')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-slack">
+                            <i class="fab fa-slack fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Slack</h5>
+                        <p class="text-muted mb-3">Bridge messages between Nextcloud Talk and Slack</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('slack')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Automation & Workflows -->
+    <div class="integration-category">
+        <h3 class="category-title">
+            <i class="fas fa-robot me-2"></i>Automation & Workflows
+        </h3>
+        <p class="category-subtitle">Automate tasks and create powerful workflows</p>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-n8n">
+                            <i class="fas fa-project-diagram fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">n8n Automation</h5>
+                        <p class="text-muted mb-3">Connect to n8n workflows for advanced automation</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('n8n')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-webhook">
+                            <i class="fas fa-webhook fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Custom Webhook</h5>
+                        <p class="text-muted mb-3">Send data to custom webhook endpoints</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('webhook')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card integration-card">
+                    <div class="integration-status status-inactive"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="integration-icon icon-discord">
+                            <i class="fab fa-discord fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Discord</h5>
+                        <p class="text-muted mb-3">Connect to Discord servers and channels</p>
+                        <button class="btn configure-btn" onclick="configureIntegration('discord')">
+                            <i class="fas fa-cog me-2"></i>Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configured Integrations -->
+    <div class="configured-integrations">
+        <h3 class="fw-bold mb-4">
+            <i class="fas fa-list me-2"></i>Configured Integrations
+        </h3>
+
+        <div class="table-responsive">
+            <table class="table table-modern">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Last Used</th>
+                        <th>API Calls</th>
+                        <th>Error Rate</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="integrationsTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="mt-2">Loading integrations...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Integration Modal -->
+<div class="modal fade" id="addIntegrationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-plus me-2"></i>Add New Integration
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="integrationForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="integrationName" class="form-label fw-bold">Integration Name</label>
+                                <input type="text" class="form-control" id="integrationName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="integrationType" class="form-label fw-bold">Type</label>
+                                <select class="form-select" id="integrationType" required onchange="updateIntegrationFields()">
+                                    <option value="">Select Type</option>
+                                    <option value="nextcloud">Nextcloud Talk</option>
+                                    <option value="openrouter">OpenRouter AI</option>
+                                    <option value="google_sheets">Google Sheets</option>
+                                    <option value="telegram">Telegram Bot</option>
+                                    <option value="teams">Microsoft Teams</option>
+                                    <option value="n8n">n8n Automation</option>
+                                    <option value="slack">Slack</option>
+                                    <option value="discord">Discord</option>
+                                    <option value="webhook">Custom Webhook</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="integrationFields">
+                        <!-- Dynamic fields based on integration type -->
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="integrationDescription" class="form-label fw-bold">Description</label>
+                        <textarea class="form-control" id="integrationDescription" rows="2" placeholder="Optional description"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn configure-btn" onclick="saveIntegration()">
+                    <i class="fas fa-save me-2"></i>Save Integration
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load integrations on page load
+$(document).ready(function() {
+    loadIntegrations();
+    loadStats();
+});
+
+function loadIntegrations() {
+    console.log('Loading integrations...');
+
+    $.get('/api/integrations')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateIntegrationsTable(data.integrations || []);
+                updateIntegrationStatus(data.integrations || []);
+            } else {
+                $('#integrationsTableBody').html(`
+                    <tr>
+                        <td colspan="7" class="text-center text-warning py-5">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i><br>
+                            ${data.message || 'No integrations configured'}
+                        </td>
+                    </tr>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#integrationsTableBody').html(`
+                <tr>
+                    <td colspan="7" class="text-center text-danger py-5">
+                        <i class="fas fa-times-circle fa-3x mb-3"></i><br>
+                        Failed to load integrations
+                    </td>
+                </tr>
+            `);
+        });
+}
+
+function updateIntegrationsTable(integrations) {
+    const tbody = $('#integrationsTableBody');
+    tbody.empty();
+
+    if (integrations.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-plug fa-3x text-muted mb-3"></i><br>
+                    <h5 class="text-muted">No integrations configured yet</h5>
+                    <p class="text-muted">Click "Add Integration" to get started</p>
+                    <button class="btn configure-btn mt-2" data-bs-toggle="modal" data-bs-target="#addIntegrationModal">
+                        <i class="fas fa-plus me-2"></i>Add First Integration
+                    </button>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+
+    integrations.forEach(integration => {
+        const statusBadge = getStatusBadge(integration.status);
+        const errorRate = integration.error_rate || 0;
+        const errorClass = errorRate > 10 ? 'text-danger' : errorRate > 5 ? 'text-warning' : 'text-success';
+
+        const row = `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="integration-status status-${integration.status} me-2"></div>
+                        <strong>${integration.name}</strong>
+                    </div>
+                </td>
+                <td><span class="badge bg-info">${integration.type}</span></td>
+                <td>${statusBadge}</td>
+                <td>${integration.last_used ? new Date(integration.last_used).toLocaleString() : 'Never'}</td>
+                <td><span class="badge bg-secondary">${integration.api_calls || 0}</span></td>
+                <td><span class="${errorClass} fw-bold">${errorRate}%</span></td>
+                <td>
+                    <button class="btn btn-sm action-btn btn-outline-primary me-1" onclick="editIntegration('${integration.id}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm action-btn btn-outline-info me-1" onclick="testIntegrationById('${integration.id}')" title="Test">
+                        <i class="fas fa-vial"></i>
+                    </button>
+                    <button class="btn btn-sm action-btn btn-outline-${integration.status === 'active' ? 'warning' : 'success'}" onclick="toggleIntegration('${integration.id}')" title="${integration.status === 'active' ? 'Disable' : 'Enable'}">
+                        <i class="fas fa-${integration.status === 'active' ? 'pause' : 'play'}"></i>
+                    </button>
+                    <button class="btn btn-sm action-btn btn-outline-danger" onclick="deleteIntegration('${integration.id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function updateIntegrationStatus(integrations) {
+    // Update status indicators on cards
+    $('.integration-status').removeClass('status-active').addClass('status-inactive');
+
+    integrations.forEach(integration => {
+        const card = $(`.integration-card:has(button[onclick*="${integration.type}"])`);
+        const statusIndicator = card.find('.integration-status');
+
+        statusIndicator.removeClass('status-inactive status-error')
+                     .addClass(`status-${integration.status}`);
+    });
+}
+
+function getStatusBadge(status) {
+    switch(status) {
+        case 'active': return '<span class="badge bg-success">Active</span>';
+        case 'inactive': return '<span class="badge bg-secondary">Inactive</span>';
+        case 'error': return '<span class="badge bg-danger">Error</span>';
+        case 'testing': return '<span class="badge bg-warning">Testing</span>';
+        default: return '<span class="badge bg-secondary">Unknown</span>';
+    }
+}
+
+function loadStats() {
+    $.get('/api/integrations/stats')
+        .done(function(data) {
+            if (data.status === 'success') {
+                $('#total-integrations').text(data.total || 0);
+                $('#active-integrations').text(data.active || 0);
+                $('#error-integrations').text(data.errors || 0);
+                $('#api-calls-today').text(data.api_calls_today || 0);
+            }
+        });
+}
+
+function configureIntegration(type) {
+    $('#integrationType').val(type);
+    updateIntegrationFields();
+    $('#addIntegrationModal').modal('show');
+}
+
+function updateIntegrationFields() {
+    const type = $('#integrationType').val();
+    const fieldsContainer = $('#integrationFields');
+
+    let fields = '';
+
+    switch(type) {
+        case 'nextcloud':
+            fields = `
+                <div class="mb-3">
+                    <label for="nextcloudUrl" class="form-label fw-bold">Nextcloud URL</label>
+                    <input type="url" class="form-control" id="nextcloudUrl" placeholder="https://your-nextcloud.com">
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-bold">Bot Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="bot_user">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-bold">Bot Password (App Password)</label>
+                    <input type="password" class="form-control" id="password" placeholder="App password from Nextcloud">
+                </div>
+                <div class="mb-3">
+                    <label for="roomId" class="form-label fw-bold">Default Room ID (Optional)</label>
+                    <input type="text" class="form-control" id="roomId" placeholder="room123">
+                </div>
+            `;
+            break;
+        case 'google_sheets':
+            fields = `
+                <div class="mb-3">
+                    <label for="spreadsheetId" class="form-label fw-bold">Spreadsheet ID</label>
+                    <input type="text" class="form-control" id="spreadsheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
+                </div>
+                <div class="mb-3">
+                    <label for="credentialsFile" class="form-label fw-bold">Credentials File</label>
+                    <input type="file" class="form-control" id="credentialsFile" accept=".json">
+                </div>
+            `;
+            break;
+        case 'n8n':
+            fields = `
+                <div class="mb-3">
+                    <label for="webhookUrl" class="form-label fw-bold">Webhook URL</label>
+                    <input type="url" class="form-control" id="webhookUrl" placeholder="https://your-n8n.com/webhook/nextcloud-bot">
+                </div>
+                <div class="mb-3">
+                    <label for="apiKey" class="form-label fw-bold">API Key (Optional)</label>
+                    <input type="password" class="form-control" id="apiKey">
+                </div>
+            `;
+            break;
+        case 'openrouter':
+            fields = `
+                <div class="mb-3">
+                    <label for="apiKey" class="form-label fw-bold">API Key</label>
+                    <input type="password" class="form-control" id="apiKey" placeholder="sk-or-...">
+                </div>
+                <div class="mb-3">
+                    <label for="model" class="form-label fw-bold">
+                        Default Model
+                        <button type="button" class="btn btn-sm btn-outline-info ms-2" onclick="loadOpenRouterModels()">
+                            <i class="fas fa-sync-alt"></i> Load Latest
+                        </button>
+                    </label>
+                    <select class="form-select" id="model">
+                        <option value="">Loading models...</option>
+                    </select>
+                    <div class="form-text">
+                        <small class="text-muted">Models are loaded from OpenRouter API. Free models are marked with (Free).</small>
+                    </div>
+                </div>
+            `;
+            // Load models after fields are created
+            setTimeout(() => {
+                loadOpenRouterModels();
+            }, 100);
+            break;
+        case 'telegram':
+            fields = `
+                <div class="mb-3">
+                    <label for="botToken" class="form-label fw-bold">Bot Token</label>
+                    <input type="password" class="form-control" id="botToken" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz">
+                </div>
+                <div class="mb-3">
+                    <label for="chatId" class="form-label fw-bold">Default Chat ID (Optional)</label>
+                    <input type="text" class="form-control" id="chatId" placeholder="-1001234567890">
+                </div>
+            `;
+            break;
+        case 'teams':
+            fields = `
+                <div class="mb-3">
+                    <label for="webhookUrl" class="form-label fw-bold">Teams Webhook URL</label>
+                    <input type="url" class="form-control" id="webhookUrl" placeholder="https://outlook.office.com/webhook/...">
+                </div>
+                <div class="mb-3">
+                    <label for="tenantId" class="form-label fw-bold">Tenant ID (Optional)</label>
+                    <input type="text" class="form-control" id="tenantId" placeholder="12345678-1234-1234-1234-123456789012">
+                </div>
+            `;
+            break;
+        case 'webhook':
+            fields = `
+                <div class="mb-3">
+                    <label for="webhookUrl" class="form-label fw-bold">Webhook URL</label>
+                    <input type="url" class="form-control" id="webhookUrl" placeholder="https://your-service.com/webhook">
+                </div>
+                <div class="mb-3">
+                    <label for="method" class="form-label fw-bold">HTTP Method</label>
+                    <select class="form-select" id="method">
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="headers" class="form-label fw-bold">Custom Headers (JSON)</label>
+                    <textarea class="form-control" id="headers" rows="3" placeholder='{"Authorization": "Bearer token"}'></textarea>
+                </div>
+            `;
+            break;
+        case 'slack':
+            fields = `
+                <div class="mb-3">
+                    <label for="webhookUrl" class="form-label fw-bold">Slack Webhook URL</label>
+                    <input type="url" class="form-control" id="webhookUrl" placeholder="https://hooks.slack.com/services/...">
+                </div>
+                <div class="mb-3">
+                    <label for="channel" class="form-label fw-bold">Default Channel</label>
+                    <input type="text" class="form-control" id="channel" placeholder="#general">
+                </div>
+            `;
+            break;
+        case 'discord':
+            fields = `
+                <div class="mb-3">
+                    <label for="webhookUrl" class="form-label fw-bold">Discord Webhook URL</label>
+                    <input type="url" class="form-control" id="webhookUrl" placeholder="https://discord.com/api/webhooks/...">
+                </div>
+                <div class="mb-3">
+                    <label for="botToken" class="form-label fw-bold">Bot Token (Optional)</label>
+                    <input type="password" class="form-control" id="botToken" placeholder="Bot token for advanced features">
+                </div>
+            `;
+            break;
+    }
+
+    fieldsContainer.html(fields);
+}
+
+function testIntegration() {
+    const type = $('#integrationType').val();
+    if (!type) {
+        showAlert('Please select an integration type', 'warning');
+        return;
+    }
+
+    // Collect form data based on type
+    const testData = {
+        type: type,
+        name: $('#integrationName').val()
+    };
+
+    // Add type-specific fields
+    switch(type) {
+        case 'google_sheets':
+            testData.spreadsheet_id = $('#spreadsheetId').val();
+            testData.credentials_file = 'config/credentials.json';
+            break;
+        case 'n8n':
+        case 'webhook':
+            testData.webhook_url = $('#webhookUrl').val();
+            testData.api_key = $('#apiKey').val();
+            break;
+        case 'openrouter':
+            testData.api_key = $('#apiKey').val();
+            testData.model = $('#model').val();
+            break;
+        case 'telegram':
+            testData.bot_token = $('#botToken').val();
+            testData.chat_id = $('#chatId').val();
+            break;
+        case 'teams':
+            testData.webhook_url = $('#webhookUrl').val();
+            testData.tenant_id = $('#tenantId').val();
+            break;
+        case 'slack':
+            testData.webhook_url = $('#webhookUrl').val();
+            testData.channel = $('#channel').val();
+            break;
+        case 'discord':
+            testData.webhook_url = $('#webhookUrl').val();
+            testData.bot_token = $('#botToken').val();
+            break;
+        case 'nextcloud':
+            testData.url = $('#nextcloudUrl').val();
+            testData.username = $('#username').val();
+            testData.password = $('#password').val();
+            testData.room_id = $('#roomId').val();
+            break;
+    }
+
+    const testBtn = $('button[onclick="testIntegrationConnection()"]');
+    const originalText = testBtn.html();
+
+    testBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Testing...');
+
+    // Check if we're in edit mode
+    const saveBtn = $('button[onclick="saveIntegration()"]');
+    const isEditMode = saveBtn.attr('data-mode') === 'edit';
+    const integrationId = saveBtn.attr('data-id');
+
+    let testUrl = '/api/integrations/test';
+
+    // For edit mode, we need to handle differently
+    if (isEditMode && integrationId) {
+        // Create a temporary test by sending current form data to test endpoint
+        testUrl = '/api/integrations/test';
+    }
+
+    $.ajax({
+        url: testUrl,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(testData)
+    })
+        .done(function(data) {
+            if (data.status === 'success') {
+                showAlert('✅ Connection test successful!', 'success');
+            } else {
+                showAlert('❌ Connection test failed: ' + data.message, 'danger');
+            }
+        })
+        .fail(function(xhr) {
+            let errorMsg = 'Connection test failed';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            }
+            showAlert('❌ ' + errorMsg, 'danger');
+        })
+        .always(function() {
+            testBtn.prop('disabled', false).html(originalText);
+        });
+}
+
+// Alias for backward compatibility - remove this
+// function testIntegrationConnection() {
+//     testIntegration();
+// }
+
+function saveIntegration() {
+    const type = $('#integrationType').val();
+    const name = $('#integrationName').val();
+
+    if (!type || !name) {
+        showAlert('Please fill in all required fields', 'warning');
+        return;
+    }
+
+    // Collect configuration data based on type
+    const config = {};
+
+    switch(type) {
+        case 'google_sheets':
+            config.spreadsheet_id = $('#spreadsheetId').val();
+            config.credentials_file = 'config/credentials.json';
+            config.enabled = true;
+
+            // Handle file upload if present
+            const fileInput = $('#credentialsFile')[0];
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Upload credentials file first
+                $.ajax({
+                    url: '/api/upload/credentials',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    async: false,
+                    success: function(response) {
+                        if (response.status !== 'success') {
+                            throw new Error('Failed to upload credentials: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        throw new Error('Failed to upload credentials file');
+                    }
+                });
+            }
+            break;
+        case 'n8n':
+            config.webhook_url = $('#webhookUrl').val();
+            config.api_key = $('#apiKey').val();
+            config.enabled = true;
+            break;
+        case 'openrouter':
+            config.api_key = $('#apiKey').val();
+            config.model = $('#model').val() || 'openai/gpt-3.5-turbo';
+            config.enabled = true;
+            break;
+        case 'nextcloud':
+            config.url = $('#nextcloudUrl').val();
+            config.username = $('#username').val();
+            config.password = $('#password').val();
+            config.room_id = $('#roomId').val();
+            config.enabled = true;
+            break;
+        case 'telegram':
+            config.bot_token = $('#botToken').val();
+            config.chat_id = $('#chatId').val();
+            config.enabled = true;
+            break;
+        case 'teams':
+            config.webhook_url = $('#webhookUrl').val();
+            config.tenant_id = $('#tenantId').val();
+            config.enabled = true;
+            break;
+        case 'webhook':
+            config.webhook_url = $('#webhookUrl').val();
+            config.method = $('#method').val() || 'POST';
+            config.headers = $('#headers').val();
+            config.enabled = true;
+            break;
+        case 'slack':
+            config.webhook_url = $('#webhookUrl').val();
+            config.channel = $('#channel').val();
+            config.enabled = true;
+            break;
+        case 'discord':
+            config.webhook_url = $('#webhookUrl').val();
+            config.bot_token = $('#botToken').val();
+            config.enabled = true;
+            break;
+    }
+
+    const saveData = {
+        type: type,
+        name: name,
+        config: config,
+        description: $('#integrationDescription').val()
+    };
+
+    const saveBtn = $('button[onclick="saveIntegration()"]');
+    const originalText = saveBtn.html();
+
+    saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+
+    $.ajax({
+        url: '/api/integrations/configure',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(saveData)
+    })
+        .done(function(data) {
+            if (data.status === 'success') {
+                showAlert('✅ Integration saved successfully!', 'success');
+                $('#addIntegrationModal').modal('hide');
+                loadIntegrations();
+                loadStats();
+
+                // Clear form
+                $('#integrationForm')[0].reset();
+                $('#integrationFields').empty();
+            } else {
+                showAlert('❌ Failed to save integration: ' + data.message, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('❌ Failed to save integration', 'danger');
+        })
+        .always(function() {
+            saveBtn.prop('disabled', false).html(originalText);
+        });
+}
+
+
+
+function testIntegrationById(integrationId) {
+    const testBtn = $(`button[onclick="testIntegrationById('${integrationId}')"]`);
+    const originalText = testBtn.html();
+
+    testBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+    $.ajax({
+        url: `/api/integrations/${integrationId}/test`,
+        method: 'POST',
+        contentType: 'application/json'
+    })
+        .done(function(data) {
+            if (data.status === 'success') {
+                showAlert('✅ Integration test successful!', 'success');
+            } else {
+                showAlert('❌ Integration test failed: ' + data.message, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('❌ Integration test failed', 'danger');
+        })
+        .always(function() {
+            testBtn.prop('disabled', false).html(originalText);
+        });
+}
+
+function toggleIntegration(integrationId) {
+    const toggleBtn = $(`button[onclick="toggleIntegration('${integrationId}')"]`);
+    const originalText = toggleBtn.html();
+
+    toggleBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+    $.ajax({
+        url: `/api/integrations/${integrationId}/toggle`,
+        method: 'POST',
+        contentType: 'application/json'
+    })
+        .done(function(data) {
+            if (data.status === 'success') {
+                loadIntegrations();
+                loadStats();
+                showAlert('Integration status updated!', 'success');
+            } else {
+                showAlert('Failed to toggle integration: ' + data.message, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('Failed to toggle integration', 'danger');
+        })
+        .always(function() {
+            toggleBtn.prop('disabled', false).html(originalText);
+        });
+}
+
+function deleteIntegration(integrationId) {
+    if (confirm('Are you sure you want to delete this integration? This action cannot be undone.')) {
+        const deleteBtn = $(`button[onclick="deleteIntegration('${integrationId}')"]`);
+        const originalText = deleteBtn.html();
+
+        deleteBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: `/api/integrations/${integrationId}`,
+            method: 'DELETE'
+        })
+        .done(function(data) {
+            if (data.status === 'success') {
+                showAlert('Integration deleted successfully', 'success');
+                loadIntegrations();
+                loadStats();
+            } else {
+                showAlert('Failed to delete integration: ' + data.message, 'danger');
+            }
+        })
+        .fail(function() {
+            showAlert('Failed to delete integration', 'danger');
+        })
+        .always(function() {
+            deleteBtn.prop('disabled', false).html(originalText);
+        });
+    }
+}
+
+function loadIntegrations() {
+    $.ajax({
+        url: '/api/integrations',
+        method: 'GET'
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            updateIntegrationsTable(data.integrations);
+        } else {
+            showIntegrationsError('Failed to load integrations: ' + data.message);
+        }
+    })
+    .fail(function() {
+        showIntegrationsError('Failed to load integrations');
+    });
+}
+
+function loadStats() {
+    $.ajax({
+        url: '/api/integrations/stats',
+        method: 'GET'
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            updateStats(data.stats);
+        } else {
+            console.error('Failed to load stats:', data.message);
+        }
+    })
+    .fail(function() {
+        console.error('Failed to load stats');
+    });
+}
+
+function updateIntegrationsTable(integrations) {
+    const tbody = $('#integrationsTableBody');
+
+    if (!integrations || integrations.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <div class="h5 text-muted">No integrations configured yet</div>
+                    <div class="text-muted">Click "Add Integration" to get started</div>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+
+    let html = '';
+    integrations.forEach(integration => {
+        const statusClass = integration.status === 'active' ? 'success' :
+                           integration.status === 'error' ? 'danger' : 'secondary';
+        const statusIcon = integration.status === 'active' ? 'check-circle' :
+                          integration.status === 'error' ? 'exclamation-circle' : 'pause-circle';
+
+        html += `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-${getIntegrationIcon(integration.type)} me-2"></i>
+                        <strong>${integration.name}</strong>
+                    </div>
+                </td>
+                <td><span class="badge bg-light text-dark">${integration.type}</span></td>
+                <td>
+                    <span class="badge bg-${statusClass}">
+                        <i class="fas fa-${statusIcon} me-1"></i>
+                        ${integration.status}
+                    </span>
+                </td>
+                <td>${integration.last_used || 'Never'}</td>
+                <td>${integration.api_calls || 0}</td>
+                <td>${integration.error_rate || 0}%</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary action-btn" onclick="testIntegrationById('${integration.id}')" title="Test">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary action-btn" onclick="editIntegration('${integration.id}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning action-btn" onclick="toggleIntegration('${integration.id}')" title="Toggle">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger action-btn" onclick="deleteIntegration('${integration.id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.html(html);
+}
+
+function updateStats(stats) {
+    $('#total-integrations').text(stats.total || 0);
+    $('#active-integrations').text(stats.active || 0);
+    $('#error-integrations').text(stats.errors || 0);
+    $('#api-calls-today').text(stats.api_calls_today || 0);
+}
+
+function showIntegrationsError(message) {
+    $('#integrationsTableBody').html(`
+        <tr>
+            <td colspan="7" class="text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <div class="h5 text-danger">Error Loading Integrations</div>
+                <div class="text-muted">${message}</div>
+                <button class="btn btn-outline-primary mt-3" onclick="loadIntegrations()">
+                    <i class="fas fa-refresh me-2"></i>Retry
+                </button>
+            </td>
+        </tr>
+    `);
+}
+
+function getIntegrationIcon(type) {
+    const icons = {
+        'nextcloud': 'cloud',
+        'openrouter': 'brain',
+        'google_sheets': 'table',
+        'telegram': 'paper-plane',
+        'teams': 'users',
+        'n8n': 'project-diagram',
+        'slack': 'slack',
+        'discord': 'discord',
+        'webhook': 'webhook'
+    };
+    return icons[type] || 'plug';
+}
+
+function configureIntegration(type) {
+    $('#integrationType').val(type);
+    $('#integrationName').val(getIntegrationDisplayName(type));
+    updateIntegrationFields();
+    $('#addIntegrationModal').modal('show');
+}
+
+function editIntegration(integrationId) {
+    console.log('Editing integration:', integrationId);
+
+    // Load existing integration data
+    $.get(`/api/integrations/${integrationId}`)
+        .done(function(data) {
+            console.log('Integration data received:', data);
+
+            if (data.status === 'success') {
+                const integration = data.integration;
+                console.log('Integration object:', integration);
+
+                // Reset modal first
+                $('#integrationForm')[0].reset();
+                $('#integrationFields').empty();
+
+                // Populate modal with existing data
+                $('#integrationType').val(integration.type);
+                $('#integrationName').val(integration.name);
+
+                // Wait for DOM update then update fields
+                setTimeout(() => {
+                    updateIntegrationFields();
+
+                    // Wait for fields to be created then populate them
+                    setTimeout(() => {
+                        populateIntegrationFields(integration);
+                    }, 100);
+                }, 100);
+
+
+                // Change modal title and button
+                $('.modal-title').html('<i class="fas fa-edit me-2"></i>Edit Integration');
+                $('button[onclick="saveIntegration()"]').html('<i class="fas fa-save me-2"></i>Update Integration');
+                $('button[onclick="saveIntegration()"]').attr('data-mode', 'edit');
+                $('button[onclick="saveIntegration()"]').attr('data-id', integrationId);
+
+                $('#addIntegrationModal').modal('show');
+            } else {
+                showAlert('Failed to load integration data: ' + data.message, 'danger');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('Failed to load integration:', error);
+            showAlert('Failed to load integration data: ' + error, 'danger');
+        });
+}
+
+function populateIntegrationFields(integration) {
+    console.log('Populating fields for integration:', integration);
+
+    // Fill form fields based on integration type
+    switch(integration.type) {
+        case 'nextcloud':
+            $('#nextcloudUrl').val(integration.url || '');
+            $('#username').val(integration.username || '');
+            $('#password').val(integration.password || '');
+            $('#roomId').val(integration.room_id || '');
+            break;
+        case 'openrouter':
+            $('#apiKey').val(integration.api_key || '');
+            $('#model').val(integration.model || '');
+            break;
+        case 'google_sheets':
+            $('#spreadsheetId').val(integration.spreadsheet_id || '');
+            break;
+        case 'telegram':
+            $('#botToken').val(integration.bot_token || '');
+            $('#chatId').val(integration.chat_id || '');
+            break;
+        case 'teams':
+            $('#webhookUrl').val(integration.webhook_url || '');
+            $('#tenantId').val(integration.tenant_id || '');
+            break;
+        case 'n8n':
+            $('#webhookUrl').val(integration.webhook_url || '');
+            $('#apiKey').val(integration.api_key || '');
+            break;
+        case 'slack':
+            $('#webhookUrl').val(integration.webhook_url || '');
+            $('#channel').val(integration.channel || '');
+            break;
+        case 'discord':
+            $('#webhookUrl').val(integration.webhook_url || '');
+            $('#botToken').val(integration.bot_token || '');
+            break;
+        case 'webhook':
+            $('#webhookUrl').val(integration.webhook_url || '');
+            $('#method').val(integration.method || 'POST');
+            $('#headers').val(integration.headers || '{}');
+            break;
+    }
+
+
+}
+
+function getIntegrationDisplayName(type) {
+    const names = {
+        'nextcloud': 'Nextcloud Talk',
+        'openrouter': 'OpenRouter AI',
+        'google_sheets': 'Google Sheets',
+        'telegram': 'Telegram Bot',
+        'teams': 'Microsoft Teams',
+        'n8n': 'n8n Automation',
+        'slack': 'Slack',
+        'discord': 'Discord',
+        'webhook': 'Custom Webhook'
+    };
+    return names[type] || type;
+}
+
+// Initialize page
+$(document).ready(function() {
+    loadIntegrations();
+    loadStats();
+
+    // Refresh every 30 seconds
+    setInterval(function() {
+        loadStats();
+    }, 30000);
+});
+
+function showAlert(message, type) {
+    // Create alert container if it doesn't exist
+    if ($('#alert-container').length === 0) {
+        $('body').append(`
+            <div id="alert-container" style="
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 9999;
+                max-width: 400px;
+                width: 100%;
+            "></div>
+        `);
+    }
+
+    const alertDiv = $(`
+        <div class="alert alert-${type} alert-dismissible fade show mb-3" role="alert" style="
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        ">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+
+    // Insert into alert container
+    $('#alert-container').prepend(alertDiv);
+
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        alertDiv.fadeOut(() => alertDiv.remove());
+    }, 5000);
+}
+
+// OpenRouter Models Loading
+function loadOpenRouterModels() {
+    const $modelSelect = $('#model');
+    const $loadBtn = $('button[onclick="loadOpenRouterModels()"]');
+    const currentValue = $modelSelect.val();
+
+    // Show loading state
+    if ($loadBtn.length) {
+        $loadBtn.html('<i class="fas fa-spinner fa-spin"></i> Loading...').prop('disabled', true);
+    }
+
+    $.ajax({
+        url: '/api/openrouter/models?categorized=true',
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success') {
+                populateOpenRouterModelSelect(data.models, currentValue);
+            } else {
+                console.error('Failed to load OpenRouter models:', data.message);
+                showOpenRouterFallbackModels();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading OpenRouter models:', error);
+            showOpenRouterFallbackModels();
+        },
+        complete: function() {
+            if ($loadBtn.length) {
+                $loadBtn.html('<i class="fas fa-sync-alt"></i> Load Latest').prop('disabled', false);
+            }
+        }
+    });
+}
+
+function populateOpenRouterModelSelect(categorizedModels, selectedValue) {
+    const $modelSelect = $('#model');
+    $modelSelect.empty();
+
+    // Add categories
+    const categories = [
+        { key: 'free', label: '🆓 Free Models' },
+        { key: 'openai', label: '🤖 OpenAI Models' },
+        { key: 'anthropic', label: '🧠 Anthropic Models' },
+        { key: 'google', label: '🔍 Google Models' },
+        { key: 'meta', label: '🦙 Meta Llama Models' },
+        { key: 'mistral', label: '🌪️ Mistral Models' },
+        { key: 'cohere', label: '🌊 Cohere Models' },
+        { key: 'deepseek', label: '🔬 DeepSeek Models' },
+        { key: 'other', label: '🌟 Other Models' }
+    ];
+
+    categories.forEach(function(category) {
+        const models = categorizedModels[category.key] || [];
+        if (models.length > 0) {
+            const $optgroup = $('<optgroup>').attr('label', category.label);
+
+            models.forEach(function(model) {
+                const $option = $('<option>')
+                    .val(model.id)
+                    .text(model.display_name)
+                    .prop('selected', model.id === selectedValue);
+                $optgroup.append($option);
+            });
+
+            $modelSelect.append($optgroup);
+        }
+    });
+
+    // If no models loaded, show fallback
+    if ($modelSelect.children().length === 0) {
+        showOpenRouterFallbackModels();
+    }
+}
+
+function showOpenRouterFallbackModels() {
+    const $modelSelect = $('#model');
+
+    // Create fallback options
+    $modelSelect.html(`
+        <optgroup label="🆓 Free Models (Fallback)">
+            <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B Instruct (Free)</option>
+            <option value="meta-llama/llama-3.1-70b-instruct:free">Llama 3.1 70B Instruct (Free)</option>
+            <option value="microsoft/phi-3-mini-128k-instruct:free">Phi-3 Mini 128K (Free)</option>
+            <option value="google/gemma-2-9b-it:free">Gemma 2 9B IT (Free)</option>
+            <option value="mistralai/mistral-7b-instruct:free">Mistral 7B Instruct (Free)</option>
+        </optgroup>
+        <optgroup label="🤖 Popular Paid Models">
+            <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo ($0.50/$1.50)</option>
+            <option value="openai/gpt-4o-mini">GPT-4o Mini ($0.15/$0.60)</option>
+            <option value="anthropic/claude-3-haiku">Claude 3 Haiku ($0.25/$1.25)</option>
+            <option value="google/gemini-flash-1.5">Gemini 1.5 Flash ($0.075/$0.30)</option>
+        </optgroup>
+    `);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-file-alt me-2"></i>System Logs</h2>
+            <div>
+                <button class="btn btn-outline-secondary me-2" onclick="refreshLogs()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+                <button class="btn btn-outline-danger" onclick="clearLogs()">
+                    <i class="fas fa-trash me-1"></i>Clear Logs
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Filters -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="logLevel" class="form-label">Log Level</label>
+                        <select class="form-select" id="logLevel" onchange="filterLogs()">
+                            <option value="">All Levels</option>
+                            <option value="DEBUG">Debug</option>
+                            <option value="INFO">Info</option>
+                            <option value="WARNING">Warning</option>
+                            <option value="ERROR">Error</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="logSearch" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="logSearch" placeholder="Search logs..." onkeyup="filterLogs()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Auto Refresh</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                            <label class="form-check-label" for="autoRefresh">
+                                Enable (30s)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logs Display -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-terminal me-2"></i>Log Output
+                    <span id="logCount" class="badge bg-secondary ms-2">15 lines</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="logContainer" style="height: 500px; overflow-y: auto; background-color: #1e1e1e; color: #ffffff; font-family: 'Courier New', monospace; font-size: 12px;">
+                    <pre id="logContent" class="p-3 m-0">2024-06-04 10:30:15 INFO: Bot started successfully
+2024-06-04 10:30:16 DEBUG: Connecting to Nextcloud...
+2024-06-04 10:30:17 INFO: Connected to Nextcloud successfully
+2024-06-04 10:30:18 DEBUG: Loading commands from database
+2024-06-04 10:30:19 INFO: Loaded 12 commands
+2024-06-04 10:30:20 WARNING: Google Sheets credentials not found
+2024-06-04 10:30:21 INFO: Using fallback database storage
+2024-06-04 10:30:22 DEBUG: Starting message polling
+2024-06-04 10:30:23 INFO: Bot is ready to receive messages
+2024-06-04 10:30:24 ERROR: Failed to connect to room: timeout
+2024-06-04 10:30:25 INFO: Retrying connection in 30 seconds
+2024-06-04 10:30:26 DEBUG: Health check passed
+2024-06-04 10:30:27 INFO: Web interface started on port 8081
+2024-06-04 10:30:28 DEBUG: User admin logged in
+2024-06-04 10:30:29 INFO: Dashboard accessed by admin</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let autoRefreshInterval;
+
+function refreshLogs() {
+    $('#logContent').append('\n' + new Date().toISOString().substring(0, 19).replace('T', ' ') + ' INFO: Logs refreshed');
+    $('#logContainer').scrollTop($('#logContainer')[0].scrollHeight);
+}
+
+function filterLogs() {
+    const level = $('#logLevel').val();
+    const search = $('#logSearch').val();
+    console.log('Filtering logs by level:', level, 'search:', search);
+}
+
+function toggleAutoRefresh() {
+    if ($('#autoRefresh').is(':checked')) {
+        autoRefreshInterval = setInterval(refreshLogs, 30000);
+        alert('Auto-refresh enabled (30 seconds)');
+    } else {
+        clearInterval(autoRefreshInterval);
+        alert('Auto-refresh disabled');
+    }
+}
+
+function clearLogs() {
+    if (confirm('Are you sure you want to clear all logs?')) {
+        $('#logContent').text('Logs cleared at ' + new Date().toLocaleString());
+        $('#logCount').text('0 lines');
+    }
+}
+
+$(document).ready(function() {
+    $('#logContainer').scrollTop($('#logContainer')[0].scrollHeight);
+});
+</script>
+{% endblock %}

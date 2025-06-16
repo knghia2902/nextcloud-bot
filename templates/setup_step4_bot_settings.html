@@ -1,0 +1,293 @@
+<div class="step-content">
+    <h4><i class="fas fa-robot me-2"></i>Bước 4: Cấu hình Bot Settings</h4>
+    <p class="text-muted">Thiết lập các thông số hoạt động của bot</p>
+    
+    <form id="bot-settings-form">
+        <!-- Basic Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cog me-1"></i><strong>Cài đặt cơ bản</strong>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="bot_name" class="form-label">
+                                <i class="fas fa-robot me-1"></i>Tên Bot *
+                            </label>
+                            <input type="text" class="form-control" id="bot_name" name="bot_name"
+                                   value="{{ config.get('bot_settings', {}).get('bot_name', 'NextcloudBot') }}"
+                                   placeholder="NextcloudBot" required>
+                            <div class="form-text">Tên hiển thị của bot trong chat</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="admin_user_id" class="form-label">
+                                <i class="fas fa-user-shield me-1"></i>Admin User ID
+                            </label>
+                            <input type="text" class="form-control" id="admin_user_id" name="admin_user_id"
+                                   value="{{ config.get('bot_settings', {}).get('admin_user_id', '') }}"
+                                   placeholder="admin_user_id">
+                            <div class="form-text">User ID của admin chính (tùy chọn)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="language" class="form-label">
+                                <i class="fas fa-language me-1"></i>Ngôn ngữ
+                            </label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="vi" {{ 'selected' if config.get('bot_settings', {}).get('language') == 'vi' else '' }}>
+                                    🇻🇳 Tiếng Việt
+                                </option>
+                                <option value="en" {{ 'selected' if config.get('bot_settings', {}).get('language') == 'en' else '' }}>
+                                    🇺🇸 English
+                                </option>
+                                <option value="zh" {{ 'selected' if config.get('bot_settings', {}).get('language') == 'zh' else '' }}>
+                                    🇨🇳 中文
+                                </option>
+                            </select>
+                            <div class="form-text">Ngôn ngữ mặc định của bot</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="log_level" class="form-label">
+                                <i class="fas fa-file-alt me-1"></i>Log Level
+                            </label>
+                            <select class="form-select" id="log_level" name="log_level">
+                                <option value="DEBUG" {{ 'selected' if config.get('bot_settings', {}).get('log_level') == 'DEBUG' else '' }}>
+                                    DEBUG (Chi tiết nhất)
+                                </option>
+                                <option value="INFO" {{ 'selected' if config.get('bot_settings', {}).get('log_level') == 'INFO' else '' }}>
+                                    INFO (Thông tin cơ bản)
+                                </option>
+                                <option value="WARNING" {{ 'selected' if config.get('bot_settings', {}).get('log_level') == 'WARNING' else '' }}>
+                                    WARNING (Chỉ cảnh báo)
+                                </option>
+                                <option value="ERROR" {{ 'selected' if config.get('bot_settings', {}).get('log_level') == 'ERROR' else '' }}>
+                                    ERROR (Chỉ lỗi)
+                                </option>
+                            </select>
+                            <div class="form-text">Mức độ chi tiết của logs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Behavior Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-brain me-1"></i><strong>Hành vi Bot</strong>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="auto_response" name="auto_response"
+                                   {{ 'checked' if config.get('bot_settings', {}).get('auto_response', True) != false else '' }}>
+                            <label class="form-check-label" for="auto_response">
+                                <strong>Auto Response</strong>
+                            </label>
+                            <div class="form-text">Bot tự động trả lời tin nhắn</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="smart_reply" name="smart_reply"
+                                   {{ 'checked' if config.get('bot_settings', {}).get('smart_reply', True) != false else '' }}>
+                            <label class="form-check-label" for="smart_reply">
+                                <strong>Smart Reply</strong>
+                            </label>
+                            <div class="form-text">Sử dụng AI để trả lời thông minh</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="log_conversations" name="log_conversations"
+                                   {{ 'checked' if config.get('bot_settings', {}).get('log_conversations', True) != false else '' }}>
+                            <label class="form-check-label" for="log_conversations">
+                                <strong>Log Conversations</strong>
+                            </label>
+                            <div class="form-text">Lưu lại cuộc trò chuyện</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="welcome_message" name="welcome_message"
+                                   {{ 'checked' if config.get('bot_settings', {}).get('welcome_message', True) != false else '' }}>
+                            <label class="form-check-label" for="welcome_message">
+                                <strong>Welcome Message</strong>
+                            </label>
+                            <div class="form-text">Gửi tin nhắn chào mừng user mới</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Advanced Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-sliders-h me-1"></i><strong>Cài đặt nâng cao</strong>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="response_delay" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Response Delay (giây)
+                            </label>
+                            <input type="number" class="form-control" id="response_delay" name="response_delay"
+                                   value="{{ config.get('bot_settings', {}).get('response_delay', 1) }}"
+                                   min="0" max="10" step="0.5">
+                            <div class="form-text">Độ trễ trước khi trả lời</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="max_message_length" class="form-label">
+                                <i class="fas fa-text-width me-1"></i>Max Message Length
+                            </label>
+                            <input type="number" class="form-control" id="max_message_length" name="max_message_length"
+                                   value="{{ config.get('bot_settings', {}).get('max_message_length', 2000) }}"
+                                   min="100" max="4000">
+                            <div class="form-text">Độ dài tối đa của tin nhắn</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="command_prefix" class="form-label">
+                                <i class="fas fa-terminal me-1"></i>Command Prefix
+                            </label>
+                            <input type="text" class="form-control" id="command_prefix" name="command_prefix"
+                                   value="{{ config.get('bot_settings', {}).get('command_prefix', '!') }}"
+                                   maxlength="3">
+                            <div class="form-text">Ký tự đầu lệnh (vd: !help)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preview Settings -->
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-eye me-1"></i>Preview Cấu hình
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Thông tin Bot:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Tên:</strong> <span id="preview-bot-name">NextcloudBot</span></li>
+                            <li><strong>Ngôn ngữ:</strong> <span id="preview-language">🇻🇳 Tiếng Việt</span></li>
+                            <li><strong>Command:</strong> <span id="preview-command">!help</span></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Tính năng:</h6>
+                        <ul class="list-unstyled" id="preview-features">
+                            <li><i class="fas fa-check text-success me-1"></i>Auto Response</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Smart Reply</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Log Conversations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Update preview when settings change
+    function updatePreview() {
+        $('#preview-bot-name').text($('#bot_name').val() || 'NextcloudBot');
+        
+        var langMap = {
+            'vi': '🇻🇳 Tiếng Việt',
+            'en': '🇺🇸 English', 
+            'zh': '🇨🇳 中文'
+        };
+        $('#preview-language').text(langMap[$('#language').val()] || '🇻🇳 Tiếng Việt');
+        
+        var prefix = $('#command_prefix').val() || '!';
+        $('#preview-command').text(prefix + 'help');
+        
+        // Update features list
+        var features = [];
+        if ($('#auto_response').is(':checked')) {
+            features.push('<li><i class="fas fa-check text-success me-1"></i>Auto Response</li>');
+        }
+        if ($('#smart_reply').is(':checked')) {
+            features.push('<li><i class="fas fa-check text-success me-1"></i>Smart Reply</li>');
+        }
+        if ($('#log_conversations').is(':checked')) {
+            features.push('<li><i class="fas fa-check text-success me-1"></i>Log Conversations</li>');
+        }
+        if ($('#welcome_message').is(':checked')) {
+            features.push('<li><i class="fas fa-check text-success me-1"></i>Welcome Message</li>');
+        }
+        
+        if (features.length === 0) {
+            features.push('<li><i class="fas fa-times text-muted me-1"></i>Không có tính năng nào được bật</li>');
+        }
+        
+        $('#preview-features').html(features.join(''));
+    }
+    
+    // Bind update events
+    $('#bot_name, #language, #command_prefix').on('input change', updatePreview);
+    $('#auto_response, #smart_reply, #log_conversations, #welcome_message').on('change', updatePreview);
+    
+    // Initial preview update
+    updatePreview();
+    
+    // Auto-fill default values
+    if (!$('#bot_name').val()) {
+        $('#bot_name').val('NextcloudBot');
+    }
+    if (!$('#command_prefix').val()) {
+        $('#command_prefix').val('!');
+    }
+    if (!$('#response_delay').val()) {
+        $('#response_delay').val('1');
+    }
+    if (!$('#max_message_length').val()) {
+        $('#max_message_length').val('2000');
+    }
+    
+    // Validation
+    $('#bot_name').on('input', function() {
+        var value = $(this).val();
+        if (value.length < 3) {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    $('#command_prefix').on('input', function() {
+        var value = $(this).val();
+        // Only allow special characters
+        if (!/^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/.test(value)) {
+            $(this).val(value.replace(/[a-zA-Z0-9]/g, ''));
+        }
+    });
+});
+</script>

@@ -1,0 +1,699 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Wizard - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-white"><i class="fas fa-magic me-2"></i>Setup Wizard</h2>
+        <p class="text-light">Cấu hình từng bước để khởi động bot</p>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Tiến độ Setup</h5>
+                <div class="progress mb-3" style="height: 25px;">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ (current_step - 1) * 20 }}%"
+                         aria-valuenow="{{ (current_step - 1) * 20 }}" 
+                         aria-valuemin="0" aria-valuemax="100">
+                        Bước {{ current_step }}/5
+                    </div>
+                </div>
+                
+                <!-- Step indicators - Responsive Design -->
+                <div class="row text-center g-2">
+                    <div class="col-6 col-md-2 col-lg">
+                        <div class="step-indicator {{ 'active' if current_step >= 1 else '' }} {{ 'completed' if current_step > 1 else '' }}">
+                            <i class="fas fa-cloud"></i>
+                        </div>
+                        <div class="step-label">Nextcloud</div>
+                    </div>
+                    <div class="col-6 col-md-2 col-lg">
+                        <div class="step-indicator {{ 'active' if current_step >= 2 else '' }} {{ 'completed' if current_step > 2 else '' }}">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="step-label">OpenRouter</div>
+                    </div>
+                    <div class="col-6 col-md-2 col-lg">
+                        <div class="step-indicator {{ 'active' if current_step >= 3 else '' }} {{ 'completed' if current_step > 3 else '' }}">
+                            <i class="fas fa-plug"></i>
+                        </div>
+                        <div class="step-label">Integrations</div>
+                    </div>
+                    <div class="col-6 col-md-2 col-lg">
+                        <div class="step-indicator {{ 'active' if current_step >= 4 else '' }} {{ 'completed' if current_step > 4 else '' }}">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="step-label">Bot Settings</div>
+                    </div>
+                    <div class="col-12 col-md-2 col-lg">
+                        <div class="step-indicator {{ 'active' if current_step >= 5 else '' }} {{ 'completed' if current_step > 5 else '' }}">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-label">Complete</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Step Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div id="step-content">
+                    <!-- Inline Step 1 Form -->
+                    <div class="step-content">
+                        <h4><i class="fas fa-cloud me-2"></i>Bước 1: Cấu hình Nextcloud</h4>
+                        <p class="text-muted">Kết nối bot với Nextcloud server của bạn</p>
+
+                        <form id="nextcloud-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nextcloud_url" class="form-label">
+                                            <i class="fas fa-link me-1"></i>Nextcloud URL *
+                                        </label>
+                                        <input type="url" class="form-control" id="nextcloud_url" name="url"
+                                               value="https://your-nextcloud-domain.com"
+                                               placeholder="https://your-nextcloud.com" required>
+                                        <div class="form-text">URL đầy đủ của Nextcloud server</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nextcloud_username" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Username *
+                                        </label>
+                                        <input type="text" class="form-control" id="nextcloud_username" name="username"
+                                               value="your_bot_username"
+                                               placeholder="your_bot_username" required>
+                                        <div class="form-text">Tên đăng nhập bot trong Nextcloud</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nextcloud_password" class="form-label">
+                                            <i class="fas fa-key me-1"></i>App Password *
+                                        </label>
+                                        <input type="password" class="form-control" id="nextcloud_password" name="password"
+                                               value=""
+                                               placeholder="App password từ Nextcloud" required>
+                                        <div class="form-text">App password (không phải mật khẩu thường)</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nextcloud_room_id" class="form-label">
+                                            <i class="fas fa-comments me-1"></i>Default Room ID
+                                        </label>
+                                        <input type="text" class="form-control" id="nextcloud_room_id" name="room_id"
+                                               value=""
+                                               placeholder="your_room_id">
+                                        <div class="form-text">Room ID mặc định để test (tùy chọn)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="nextcloud_enabled" name="enabled" checked>
+                                        <label class="form-check-label" for="nextcloud_enabled">
+                                            Kích hoạt kết nối Nextcloud
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Connection -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-vial me-1"></i>Test Connection
+                                            </h6>
+                                            <p class="card-text text-muted">Kiểm tra kết nối với Nextcloud server</p>
+                                            <button type="button" id="test-nextcloud" class="btn btn-outline-primary">
+                                                <i class="fas fa-play me-1"></i>Test Connection
+                                            </button>
+                                            <div id="test-result" class="mt-2"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Help Section for Step 1 -->
+                        <div class="row mt-4" id="help-section">
+                            <div class="col-12">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-info-circle me-1"></i>Hướng dẫn
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Cách tạo App Password trong Nextcloud:</h6>
+                                        <ol>
+                                            <li>Đăng nhập vào Nextcloud với tài khoản bot</li>
+                                            <li>Vào <strong>Settings</strong> → <strong>Security</strong></li>
+                                            <li>Trong phần <strong>App passwords</strong>, tạo password mới</li>
+                                            <li>Đặt tên: "NextcloudBot" và click <strong>Create new app password</strong></li>
+                                            <li>Copy password được tạo và paste vào trường App Password ở trên</li>
+                                        </ol>
+
+                                        <h6 class="mt-3">Cách tìm Room ID:</h6>
+                                        <ol>
+                                            <li>Vào Nextcloud Talk</li>
+                                            <li>Mở room muốn sử dụng</li>
+                                            <li>Xem URL, Room ID là phần sau <code>/call/</code></li>
+                                            <li>Ví dụ: <code>https://nextcloud.com/call/your_room_id</code> → Room ID: <code>your_room_id</code></li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between">
+            <button id="prev-btn" class="btn btn-secondary" {{ 'disabled' if current_step <= 1 else '' }}>
+                <i class="fas fa-arrow-left me-1"></i>Previous
+            </button>
+            <button id="next-btn" class="btn btn-primary">
+                Next<i class="fas fa-arrow-right ms-1"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-indicator {
+    padding: 12px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    margin: 0 auto 8px auto;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.step-indicator.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+    transform: scale(1.1);
+}
+
+.step-indicator.completed {
+    background-color: #28a745;
+    color: white;
+    border-color: #1e7e34;
+}
+
+.step-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #495057;
+    text-align: center;
+    margin-top: 5px;
+    line-height: 1.2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .step-indicator {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .step-label {
+        font-size: 10px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .step-indicator {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+        padding: 15px;
+    }
+
+    .step-label {
+        font-size: 12px;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Wait for jQuery to be available
+function waitForJQuery(callback) {
+    var attempts = 0;
+    var maxAttempts = 50; // 5 seconds max
+
+    function check() {
+        attempts++;
+        if (typeof $ !== 'undefined' && typeof $.fn !== 'undefined') {
+            console.log('jQuery loaded successfully after', attempts, 'attempts');
+            callback();
+        } else if (attempts < maxAttempts) {
+            setTimeout(check, 100);
+        } else {
+            console.error('jQuery failed to load after 5 seconds');
+            alert('jQuery failed to load. Please refresh the page.');
+        }
+    }
+
+    check();
+}
+
+console.log('Starting jQuery wait...');
+waitForJQuery(function() {
+console.log('jQuery is ready, starting document ready...');
+$(document).ready(function() {
+    // Force start from step 1
+    var currentStep = 1;
+    console.log('Setup wizard initialized with step:', currentStep);
+    console.log('Step content div exists:', $('#step-content').length > 0);
+    console.log('Current URL:', window.location.href);
+    console.log('jQuery version:', $.fn.jquery);
+    console.log('Document ready completed');
+
+    // Define functions first
+    function updateProgress(step) {
+        var percentage = ((step - 1) / 4) * 100;
+        $('.progress-bar').css('width', percentage + '%').text('Bước ' + step + '/5');
+
+        // Update step indicators
+        $('.step-indicator').removeClass('active completed');
+        $('.step-indicator').each(function(index) {
+            if (index + 1 < step) {
+                $(this).addClass('completed');
+            } else if (index + 1 === step) {
+                $(this).addClass('active');
+            }
+        });
+    }
+
+    function updateNavigation() {
+        $('#prev-btn').prop('disabled', currentStep <= 1);
+        $('#next-btn').text(currentStep >= 5 ? 'Complete Setup' : 'Next');
+    }
+
+    // Initialize navigation
+    updateNavigation();
+    updateProgress(currentStep);
+
+    // Load initial step content (step 1 has inline form, others need AJAX)
+    console.log('Setup wizard initialized for step:', currentStep);
+    if (currentStep > 1) {
+        loadStepContent(currentStep);
+    } else {
+        console.log('Using inline form for step 1');
+    }
+
+    // Debug: Check if elements exist
+    console.log('Test button exists:', $('#test-nextcloud').length);
+    console.log('Next button exists:', $('#next-btn').length);
+    console.log('Prev button exists:', $('#prev-btn').length);
+    console.log('Form exists:', $('#nextcloud-form').length);
+
+    // Debug: Check form inputs
+    console.log('URL input exists:', $('#nextcloud_url').length);
+    console.log('Username input exists:', $('#nextcloud_username').length);
+    console.log('Password input exists:', $('#nextcloud_password').length);
+    console.log('Room ID input exists:', $('#nextcloud_room_id').length);
+
+    // Debug: Check input values
+    if ($('#nextcloud_url').length > 0) {
+        console.log('URL value:', $('#nextcloud_url').val());
+        console.log('Username value:', $('#nextcloud_username').val());
+        console.log('Password value:', $('#nextcloud_password').val());
+        console.log('Room ID value:', $('#nextcloud_room_id').val());
+    }
+
+    // Test Nextcloud connection - direct event binding
+    if ($('#test-nextcloud').length > 0) {
+        $('#test-nextcloud').click(function() {
+            console.log('Test Nextcloud button clicked');
+            var $btn = $(this);
+            var $result = $('#test-result');
+            console.log('Button element:', $btn.length, 'Result element:', $result.length);
+
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Testing...');
+        $result.empty();
+
+        var testData = {
+            url: $('#nextcloud_url').val(),
+            username: $('#nextcloud_username').val(),
+            password: $('#nextcloud_password').val(),
+            room_id: $('#nextcloud_room_id').val()
+        };
+
+        console.log('Test data collected:', testData);
+        console.log('URL input element:', $('#nextcloud_url')[0]);
+        console.log('Username input element:', $('#nextcloud_username')[0]);
+
+        // Fallback if form inputs are empty
+        if (!testData.url || !testData.username || !testData.password) {
+            console.warn('Form inputs are empty, using fallback values');
+            testData = {
+                url: 'https://your-nextcloud-domain.com',
+                username: 'your_bot_username',
+                password: 'your_bot_password',
+                room_id: 'your_room_id'
+            };
+            console.log('Using fallback test data:', testData);
+        }
+
+        $.ajax({
+            url: '/api/test/nextcloud',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(testData),
+            success: function(response) {
+                if (response.status === 'success') {
+                    $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+                } else {
+                    $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi kết nối đến server</div>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Test Connection');
+            }
+        });
+        });
+    } else {
+        console.warn('Test Nextcloud button not found');
+    }
+
+
+    
+    // Navigation handlers
+    if ($('#next-btn').length > 0) {
+        $('#next-btn').click(function() {
+            console.log('Next button clicked, currentStep:', currentStep);
+            if (currentStep < 5) {
+            // Simple navigation - save step data first
+            var stepData = getStepData(currentStep);
+            console.log('Saving step', currentStep, 'data:', stepData);
+            console.log('Form inputs found:', $('#step-content form input').length);
+            console.log('Form selects found:', $('#step-content form select').length);
+
+            // Save configuration
+            $.ajax({
+                url: '/api/setup/step',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    step: currentStep,
+                    config: stepData
+                }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showAlert('success', response.message);
+                        // Move to next step
+                        currentStep++;
+                        updateProgress(currentStep);
+                        updateNavigation();
+                        // Load actual step content
+                        loadStepContent(currentStep);
+                    } else {
+                        showAlert('error', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Save error:', status, error);
+                    showAlert('error', 'Lỗi khi lưu cấu hình: ' + error);
+                }
+            });
+        } else {
+            // Complete setup
+            completeSetup();
+        }
+        });
+    } else {
+        console.warn('Next button not found');
+    }
+    
+    if ($('#prev-btn').length > 0) {
+        $('#prev-btn').click(function() {
+            if (currentStep > 1) {
+                currentStep--;
+                loadStepContent(currentStep);
+                updateNavigation();
+            }
+        });
+    } else {
+        console.warn('Prev button not found');
+    }
+    
+    function loadStepContent(step) {
+        console.log('Loading step content for step:', step);
+        console.log('Making AJAX request to: /setup/step/' + step);
+
+        // Show loading indicator
+        $('#step-content').html('<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i><br><br>Đang tải bước ' + step + '...</div>');
+
+        $.ajax({
+            url: '/setup/step/' + step,
+            method: 'GET',
+            timeout: 10000,
+            success: function(data) {
+                console.log('Step content loaded successfully:', data.length, 'characters');
+                console.log('Response preview:', data.substring(0, 200));
+
+                if (data && data.length > 0) {
+                    $('#step-content').html(data);
+                    updateProgress(step);
+                    console.log('Step content rendered successfully');
+                } else {
+                    console.error('Empty response from server');
+                    $('#step-content').html('<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Không có nội dung cho bước ' + step + '</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to load step content:', status, error);
+                console.error('Response status:', xhr.status);
+                console.error('Response text:', xhr.responseText);
+
+                var errorMsg = 'Không thể tải nội dung bước ' + step;
+                if (xhr.status === 403) {
+                    errorMsg = 'Bạn cần đăng nhập để tiếp tục. <a href="/login" class="btn btn-primary btn-sm ms-2">Đăng nhập</a>';
+                } else if (xhr.status === 404) {
+                    errorMsg = 'Bước ' + step + ' không tồn tại';
+                } else if (status === 'timeout') {
+                    errorMsg = 'Timeout khi tải bước ' + step + '. Vui lòng thử lại.';
+                }
+
+                $('#step-content').html('<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>' + errorMsg + '</div>');
+                showAlert('error', errorMsg);
+            }
+        });
+    }
+    
+    function saveCurrentStep(step, callback) {
+        var stepData = getStepData(step);
+
+        // Validate before saving
+        validateStepData(step, stepData, function(isValid) {
+            if (!isValid) {
+                return;
+            }
+
+            $.ajax({
+                url: '/api/setup/step',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    step: step,
+                    config: stepData
+                }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showAlert('success', response.message);
+                        if (response.applied_components && response.applied_components.length > 0) {
+                            showAlert('info', 'Applied to system: ' + response.applied_components.join(', '));
+                        }
+                        if (callback) callback();
+                    } else {
+                        showAlert('error', response.message);
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'Lỗi khi lưu cấu hình bước ' + step);
+                }
+            });
+        });
+    }
+
+    function validateStepData(step, stepData, callback) {
+        var configTypes = {
+            1: 'nextcloud',
+            2: 'openrouter',
+            3: 'integrations',
+            4: 'bot_settings'
+        };
+
+        var configType = configTypes[step];
+        if (!configType) {
+            callback(true);
+            return;
+        }
+
+        $.ajax({
+            url: '/api/config/validate',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                type: configType,
+                config: stepData
+            }),
+            success: function(response) {
+                if (response.status === 'success') {
+                    var validation = response.validation;
+
+                    if (!validation.valid) {
+                        showAlert('error', 'Validation errors: ' + validation.errors.join(', '));
+                        callback(false);
+                        return;
+                    }
+
+                    if (validation.warnings.length > 0) {
+                        showAlert('warning', 'Warnings: ' + validation.warnings.join(', '));
+                    }
+
+                    callback(true);
+                } else {
+                    showAlert('error', 'Validation failed');
+                    callback(false);
+                }
+            },
+            error: function() {
+                showAlert('warning', 'Could not validate - proceeding anyway');
+                callback(true);
+            }
+        });
+    }
+    
+    function getStepData(step) {
+        var data = {};
+        
+        // Collect form data based on current step
+        $('#step-content form input, #step-content form select, #step-content form textarea').each(function() {
+            var $this = $(this);
+            var name = $this.attr('name');
+            var value = $this.val();
+            
+            if ($this.attr('type') === 'checkbox') {
+                value = $this.is(':checked');
+            }
+            
+            if (name) {
+                data[name] = value;
+            }
+        });
+        
+        return data;
+    }
+    
+
+    
+    function completeSetup() {
+        $.ajax({
+            url: '/api/setup/step',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                step: 5,
+                config: { complete: true }
+            }),
+            success: function(response) {
+                if (response.status === 'success') {
+                    showAlert('success', 'Setup hoàn thành! Chuyển hướng đến dashboard...');
+                    setTimeout(function() {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showAlert('error', response.message);
+                }
+            },
+            error: function() {
+                showAlert('error', 'Lỗi khi hoàn thành setup');
+            }
+        });
+    }
+    
+    function showAlert(type, message) {
+        var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                       message +
+                       '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                       '</div>';
+
+        $('#step-content').prepend(alertHtml);
+
+        // Note: Alerts will stay visible (no auto-dismiss)
+    }
+
+    function getManualStepContent(step) {
+        var stepTitles = {
+            1: 'Bước 1: Cấu hình Nextcloud',
+            2: 'Bước 2: Cấu hình OpenRouter AI',
+            3: 'Bước 3: Cấu hình Integrations',
+            4: 'Bước 4: Cấu hình Bot Settings',
+            5: 'Bước 5: Hoàn thành Setup'
+        };
+
+        return '<div class="alert alert-warning">' +
+               '<h5><i class="fas fa-exclamation-triangle me-2"></i>' + stepTitles[step] + '</h5>' +
+               '<p>Không thể tải nội dung bước tự động. Vui lòng:</p>' +
+               '<ol>' +
+               '<li>Kiểm tra kết nối mạng</li>' +
+               '<li>Đảm bảo đã đăng nhập</li>' +
+               '<li>Refresh trang và thử lại</li>' +
+               '</ol>' +
+               '<button class="btn btn-primary" onclick="location.reload()">Refresh Trang</button> ' +
+               '<a href="/login" class="btn btn-outline-primary">Đăng nhập lại</a>' +
+               '</div>';
+    }
+});
+});
+</script>
+{% endblock %}

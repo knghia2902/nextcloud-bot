@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Commands Documentation{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-book me-2"></i>Commands System Documentation</h1>
+                <a href="/commands" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Commands
+                </a>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Table of Contents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><a href="#overview" class="text-decoration-none">1. System Overview</a></li>
+                                <li><a href="#command-types" class="text-decoration-none">2. Command Types</a></li>
+                                <li><a href="#user-commands" class="text-decoration-none">3. User Commands Management</a></li>
+                                <li><a href="#conditions" class="text-decoration-none">4. Command Conditions</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><a href="#testing" class="text-decoration-none">5. Testing Commands</a></li>
+                                <li><a href="#best-practices" class="text-decoration-none">6. Best Practices</a></li>
+                                <li><a href="#troubleshooting" class="text-decoration-none">7. Troubleshooting</a></li>
+                                <li><a href="#examples" class="text-decoration-none">8. Examples</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. System Overview -->
+            <div class="card mb-4" id="overview">
+                <div class="card-header">
+                    <h4><i class="fas fa-info-circle me-2"></i>1. System Overview</h4>
+                </div>
+                <div class="card-body">
+                    <p>The Commands System allows you to create and manage bot commands with advanced features:</p>
+                    <ul>
+                        <li><strong>Web Commands</strong>: Global commands available to all users</li>
+                        <li><strong>User Commands</strong>: Commands assigned to specific users in specific rooms</li>
+                        <li><strong>Conditional Commands</strong>: Commands with validation rules</li>
+                        <li><strong>Testing System</strong>: Comprehensive command testing with detailed results</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Key Features:</strong> Fast loading, display names, nested data structure, comprehensive logging
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Command Types -->
+            <div class="card mb-4" id="command-types">
+                <div class="card-header">
+                    <h4><i class="fas fa-layer-group me-2"></i>2. Command Types</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-globe me-2"></i>Web Commands</h5>
+                            <ul>
+                                <li>Available to all users globally</li>
+                                <li>Configured in main Commands page</li>
+                                <li>Support conditions and validation</li>
+                                <li>Can be enabled/disabled</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-user me-2"></i>User Commands</h5>
+                            <ul>
+                                <li>Assigned to specific users</li>
+                                <li>Room-specific assignments</li>
+                                <li>Individual management</li>
+                                <li>Display names support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. User Commands Management -->
+            <div class="card mb-4" id="user-commands">
+                <div class="card-header">
+                    <h4><i class="fas fa-users-cog me-2"></i>3. User Commands Management</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Features:</h5>
+                    <ul>
+                        <li><strong>Fast Loading</strong>: Rooms load quickly with optimized API</li>
+                        <li><strong>Display Names</strong>: Shows user display names instead of account IDs</li>
+                        <li><strong>Bulk Operations</strong>: Apply commands to multiple users at once</li>
+                        <li><strong>Individual Management</strong>: Delete specific user assignments</li>
+                        <li><strong>Room-based</strong>: Commands are assigned per room</li>
+                    </ul>
+
+                    <h5>How to Use:</h5>
+                    <ol>
+                        <li>Click "User Commands Management" button for any command</li>
+                        <li>Select a room from dropdown (fast loading)</li>
+                        <li>Select users using checkboxes</li>
+                        <li>Click "Apply Command to Selected Users"</li>
+                        <li>View assignments in "Current Command Assignments" section</li>
+                    </ol>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Pro Tip:</strong> Use "Remove All" to delete command from all users in a room at once
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Command Conditions -->
+            <div class="card mb-4" id="conditions">
+                <div class="card-header">
+                    <h4><i class="fas fa-filter me-2"></i>4. Command Conditions</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Available Conditions:</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-id-card me-2"></i>User ID Pattern</h6>
+                            <p>Validate user ID format (e.g., employee codes starting with O5A/O5B)</p>
+                            <code>Pattern: ^(O5A|O5B)[0-9]{8}$</code>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-ruler me-2"></i>Character Count</h6>
+                            <p>Require specific character count in user ID</p>
+                            <code>Example: 11 characters total</code>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-key me-2"></i>Required Characters</h6>
+                            <p>Ensure user ID contains specific characters</p>
+                            <code>Example: Must contain "O5A" or "O5B"</code>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-comment me-2"></i>Message Keywords</h6>
+                            <p>Check message content for specific keywords</p>
+                            <code>Example: ["urgent", "priority"]</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Testing Commands -->
+            <div class="card mb-4" id="testing">
+                <div class="card-header">
+                    <h4><i class="fas fa-flask me-2"></i>5. Testing Commands</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Test Features:</h5>
+                    <ul>
+                        <li><strong>Comprehensive Testing</strong>: Test all command types with detailed results</li>
+                        <li><strong>Condition Validation</strong>: Check if conditions pass or fail</li>
+                        <li><strong>Response Preview</strong>: See bot response before deployment</li>
+                        <li><strong>Performance Metrics</strong>: Execution time measurement</li>
+                    </ul>
+
+                    <h5>How to Test:</h5>
+                    <ol>
+                        <li>Click the <i class="fas fa-flask"></i> Test button for any command</li>
+                        <li>Enter test parameters (User ID, Room ID, Message)</li>
+                        <li>Click "Run Test"</li>
+                        <li>Review comprehensive test results</li>
+                    </ol>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> Testing is safe and doesn't affect live bot operations
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Best Practices -->
+            <div class="card mb-4" id="best-practices">
+                <div class="card-header">
+                    <h4><i class="fas fa-star me-2"></i>6. Best Practices</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Command Design:</h5>
+                            <ul>
+                                <li>Use clear, descriptive command names</li>
+                                <li>Test commands before deployment</li>
+                                <li>Use conditions for business rules</li>
+                                <li>Provide helpful response messages</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>User Management:</h5>
+                            <ul>
+                                <li>Assign commands room by room</li>
+                                <li>Use display names for clarity</li>
+                                <li>Regular cleanup of unused assignments</li>
+                                <li>Document command purposes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Troubleshooting -->
+            <div class="card mb-4" id="troubleshooting">
+                <div class="card-header">
+                    <h4><i class="fas fa-tools me-2"></i>7. Troubleshooting</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Common Issues:</h5>
+                    <div class="accordion" id="troubleshootingAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue1">
+                                    Commands not loading
+                                </button>
+                            </h2>
+                            <div id="issue1" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <strong>Solution:</strong> Check browser console (F12) for errors. Refresh page and login again if session expired.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue2">
+                                    User assignments not showing
+                                </button>
+                            </h2>
+                            <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <strong>Solution:</strong> Ensure you're logged in and have proper permissions. Check server logs for authentication issues.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue3">
+                                    Delete operations failing
+                                </button>
+                            </h2>
+                            <div id="issue3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <strong>Solution:</strong> Check file permissions on config directory. Ensure server has write access to user_commands.json.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Examples -->
+            <div class="card mb-4" id="examples">
+                <div class="card-header">
+                    <h4><i class="fas fa-code me-2"></i>8. Examples</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Example 1: Employee Command with Validation</h5>
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Command:</strong> !dinhchi<br>
+                        <strong>Conditions:</strong><br>
+                        - User ID Pattern: ^(O5A|O5B)[0-9]{8}$<br>
+                        - Character Count: 11<br>
+                        - Required Characters: O5A, O5B<br>
+                        <strong>Response:</strong> "Employee suspension command executed for {user_id}"
+                    </div>
+
+                    <h5>Example 2: Room-specific Command</h5>
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Command:</strong> !meeting<br>
+                        <strong>Scope:</strong> Specific users in meeting rooms<br>
+                        <strong>Response:</strong> "Meeting command available for authorized users only"
+                    </div>
+
+                    <h5>Example 3: Keyword-based Command</h5>
+                    <div class="bg-light p-3 rounded">
+                        <strong>Command:</strong> !urgent<br>
+                        <strong>Conditions:</strong><br>
+                        - Message Keywords: ["urgent", "emergency", "priority"]<br>
+                        <strong>Response:</strong> "Urgent request received and escalated"
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+code {
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-info {
+    border-left-color: #17a2b8;
+}
+
+.alert-success {
+    border-left-color: #28a745;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e3f2fd;
+}
+</style>
+{% endblock %}

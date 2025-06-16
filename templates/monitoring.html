@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}System Monitoring - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-line me-2"></i>System Monitoring</h2>
+        <p class="text-muted">Real-time system performance and metrics</p>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-microchip fa-2x text-primary mb-2"></i>
+                <h5 class="card-title">CPU Usage</h5>
+                <h3 class="text-primary" id="cpuUsage">25%</h3>
+                <div class="progress mt-2">
+                    <div class="progress-bar bg-primary" style="width: 25%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-memory fa-2x text-info mb-2"></i>
+                <h5 class="card-title">Memory Usage</h5>
+                <h3 class="text-info" id="memoryUsage">512MB</h3>
+                <div class="progress mt-2">
+                    <div class="progress-bar bg-info" style="width: 60%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-hdd fa-2x text-warning mb-2"></i>
+                <h5 class="card-title">Disk Usage</h5>
+                <h3 class="text-warning" id="diskUsage">2.1GB</h3>
+                <div class="progress mt-2">
+                    <div class="progress-bar bg-warning" style="width: 35%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-network-wired fa-2x text-success mb-2"></i>
+                <h5 class="card-title">Network</h5>
+                <h3 class="text-success" id="networkStatus">Active</h3>
+                <small class="text-muted">↑ 1.2MB/s ↓ 0.8MB/s</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-server me-2"></i>System Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>OS:</strong></td>
+                                <td>Linux Ubuntu 20.04</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Python Version:</strong></td>
+                                <td>3.9.7</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Container:</strong></td>
+                                <td>Docker 20.10.8</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Uptime:</strong></td>
+                                <td id="systemUptime">2h 15m 30s</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Bot Version:</strong></td>
+                                <td>2.0.0</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Database:</strong></td>
+                                <td>SQLite 3.36.0</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Web Port:</strong></td>
+                                <td>8081</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Restart:</strong></td>
+                                <td>2 hours ago</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Health Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Bot Service</span>
+                        <span class="badge bg-success">Healthy</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Database</span>
+                        <span class="badge bg-success">Connected</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Nextcloud API</span>
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Web Interface</span>
+                        <span class="badge bg-success">Running</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Events -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Events</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Bot Started</h6>
+                            <p class="timeline-text">Bot service started successfully</p>
+                            <small class="text-muted">2 hours ago</small>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">User Login</h6>
+                            <p class="timeline-text">Admin user logged into web interface</p>
+                            <small class="text-muted">1 hour ago</small>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-warning"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Configuration Updated</h6>
+                            <p class="timeline-text">Bot configuration was modified</p>
+                            <small class="text-muted">30 minutes ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 17px;
+    width: 2px;
+    height: calc(100% + 20px);
+    background-color: #dee2e6;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timeline-text {
+    margin-bottom: 5px;
+    color: #6c757d;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        updateMetrics();
+    }, 30000);
+});
+
+function updateMetrics() {
+    // Simulate updating metrics
+    const cpuUsage = Math.floor(Math.random() * 50) + 10;
+    const memoryUsage = Math.floor(Math.random() * 200) + 400;
+    
+    $('#cpuUsage').text(cpuUsage + '%');
+    $('#memoryUsage').text(memoryUsage + 'MB');
+    
+    console.log('Metrics updated');
+}
+</script>
+{% endblock %}

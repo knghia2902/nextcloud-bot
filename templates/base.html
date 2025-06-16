@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nextcloud Bot Management{% endblock %}</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 70px; /* Space for fixed navbar */
+            padding-left: 0; /* Will be adjusted when sidebar is open */
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1030;
+        }
+
+        /* Left Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 1025;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.show {
+            left: 0;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .sidebar-menu {
+            padding: 0;
+        }
+
+        .sidebar-item {
+            border: none;
+            transition: all 0.3s ease;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .sidebar-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+            border-left: 4px solid #667eea;
+        }
+
+        .sidebar-item.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-left: 4px solid #667eea;
+            font-weight: 600;
+        }
+
+        .sidebar-category {
+            background: rgba(0,0,0,0.05);
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+            margin-left: 0;
+        }
+
+        .main-content.sidebar-open {
+            margin-left: 300px;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1020;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .status-healthy { color: #28a745; }
+        .status-unhealthy { color: #dc3545; }
+        .status-warning { color: #ffc107; }
+    </style>
+    {% block extra_css %}{% endblock %}
+
+    <!-- Load jQuery first to avoid $ is not defined error -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {% if session.user_id %}
+    <!-- Top Header -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container-fluid">
+            <!-- Menu toggle button -->
+            <button class="btn btn-outline-primary me-3" type="button" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-robot me-2"></i>Nextcloud Bot
+            </a>
+
+            <!-- Top right menu -->
+            <div class="navbar-nav ms-auto d-flex align-items-center">
+                <!-- Language Switcher -->
+                <div class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
+                        <span class="me-2">{{ languages[current_language]['flag'] }}</span>
+                        <span>{{ languages[current_language]['name'] }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header"><i class="fas fa-globe me-2"></i>Language / Ngôn ngữ</h6></li>
+                        {% for lang_code, lang_data in languages.items() %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center {% if lang_code == current_language %}active{% endif %}"
+                               href="#" onclick="switchLanguage('{{ lang_code }}')">
+                                <span class="me-2">{{ lang_data['flag'] }}</span>
+                                <span>{{ lang_data['name'] }}</span>
+                                {% if lang_code == current_language %}
+                                <i class="fas fa-check ms-auto text-success"></i>
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- User Menu -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span>{{ session.user_id }}</span>
+                        {% if is_admin %}
+                        <span class="badge bg-danger ms-2">Admin</span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header">Account</h6></li>
+                        <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Left Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">
+                <i class="fas fa-bars me-2"></i>Navigation
+            </h5>
+        </div>
+        <div class="sidebar-menu">
+            <!-- Dashboard -->
+            <a href="/" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-tachometer-alt me-3 text-primary"></i>
+                <div>
+                    <div class="fw-bold text-dark">{{ t('dashboard') if t('dashboard') != 'dashboard' else 'Dashboard' }}</div>
+                    <small class="text-muted">{{ t('system_overview') if t('system_overview') != 'system_overview' else 'System overview' }}</small>
+                </div>
+            </a>
+
+            {% if is_admin %}
+            <!-- Management Section -->
+            <div class="sidebar-category">
+                MANAGEMENT
+            </div>
+
+            <a href="/commands" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-terminal me-3 text-success"></i>
+                <div>
+                    <div class="fw-bold text-dark">{{ t('commands') if t('commands') != 'commands' else 'Commands' }}</div>
+                    <small class="text-muted">{{ t('commands_with_conditions') if t('commands_with_conditions') != 'commands_with_conditions' else 'Commands with conditions' }}</small>
+                </div>
+            </a>
+
+            <a href="/users" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-users me-3 text-info"></i>
+                <div>
+                    <div class="fw-bold text-dark">Users</div>
+                    <small class="text-muted">User management</small>
+                </div>
+            </a>
+
+            <a href="/rooms" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-comments me-3 text-warning"></i>
+                <div>
+                    <div class="fw-bold text-dark">Rooms</div>
+                    <small class="text-muted">Chat rooms</small>
+                </div>
+            </a>
+
+            <a href="/messages" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-envelope me-3 text-primary"></i>
+                <div>
+                    <div class="fw-bold text-dark">Messages</div>
+                    <small class="text-muted">Message history</small>
+                </div>
+            </a>
+
+            <a href="/schedules" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-clock me-3 text-info"></i>
+                <div>
+                    <div class="fw-bold text-dark">Schedules</div>
+                    <small class="text-muted">Scheduled tasks</small>
+                </div>
+            </a>
+
+            <a href="/integrations" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-plug me-3 text-success"></i>
+                <div>
+                    <div class="fw-bold text-dark">Integrations</div>
+                    <small class="text-muted">External services</small>
+                </div>
+            </a>
+
+            <!-- System Section -->
+            <div class="sidebar-category">
+                SYSTEM
+            </div>
+
+
+
+            <a href="/monitoring" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-chart-line me-3 text-danger"></i>
+                <div>
+                    <div class="fw-bold text-dark">Monitoring</div>
+                    <small class="text-muted">Performance metrics</small>
+                </div>
+            </a>
+
+            <a href="/logs" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-file-alt me-3 text-info"></i>
+                <div>
+                    <div class="fw-bold text-dark">Logs</div>
+                    <small class="text-muted">Real-time logs</small>
+                </div>
+            </a>
+
+            <a href="/backup" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-database me-3 text-warning"></i>
+                <div>
+                    <div class="fw-bold text-dark">Backup</div>
+                    <small class="text-muted">Data backup & restore</small>
+                </div>
+            </a>
+
+            <a href="/security" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-shield-alt me-3 text-danger"></i>
+                <div>
+                    <div class="fw-bold text-dark">Security</div>
+                    <small class="text-muted">Security settings</small>
+                </div>
+            </a>
+
+            <a href="/settings" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-cog me-3 text-primary"></i>
+                <div>
+                    <div class="fw-bold text-dark">Settings</div>
+                    <small class="text-muted">Bot configuration</small>
+                </div>
+            </a>
+
+            <!-- Tools Section -->
+            <div class="sidebar-category">
+                TOOLS
+            </div>
+
+
+
+            <a href="/api-docs" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-book me-3 text-purple"></i>
+                <div>
+                    <div class="fw-bold text-dark">API Docs</div>
+                    <small class="text-muted">API documentation</small>
+                </div>
+            </a>
+
+            <a href="/debug" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-bug me-3 text-danger"></i>
+                <div>
+                    <div class="fw-bold text-dark">Debug</div>
+                    <small class="text-muted">Debug tools</small>
+                </div>
+            </a>
+
+            <a href="/health-check" class="sidebar-item d-flex align-items-center text-decoration-none">
+                <i class="fas fa-heartbeat me-3 text-success"></i>
+                <div>
+                    <div class="fw-bold text-dark">Health Check</div>
+                    <small class="text-muted">System health</small>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container mt-4">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- jQuery already loaded in head -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Sidebar functionality
+        function toggleSidebar() {
+            console.log('toggleSidebar called'); // Debug
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const mainContent = document.getElementById('mainContent');
+
+            console.log('sidebar element:', sidebar); // Debug
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+
+            // On desktop, adjust main content margin
+            if (window.innerWidth > 768) {
+                mainContent.classList.toggle('sidebar-open');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const mainContent = document.getElementById('mainContent');
+
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            mainContent.classList.remove('sidebar-open');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('[onclick="toggleSidebar()"]');
+
+            if (window.innerWidth <= 768 &&
+                sidebar.classList.contains('show') &&
+                !sidebar.contains(event.target) &&
+                !toggleBtn.contains(event.target)) {
+                closeSidebar();
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('mainContent').classList.remove('sidebar-open');
+            }
+        });
+
+        // Language switcher function
+        function switchLanguage(langCode) {
+            console.log('🌐 Switching language to:', langCode);
+
+            $.ajax({
+                url: `/api/language/${langCode}`,
+                method: 'GET',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        console.log('✅ Language switched successfully');
+                        // Reload page to apply new language
+                        window.location.reload();
+                    } else {
+                        console.error('❌ Language switch failed:', response.message);
+                        alert('Error switching language: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('❌ Language switch error:', xhr.responseText);
+                    alert('Error switching language');
+                }
+            });
+        }
+
+        // Set active menu item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+
+            sidebarItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath ||
+                    (currentPath === '/' && item.getAttribute('href') === '/') ||
+                    (currentPath === '/dashboard' && item.getAttribute('href') === '/')) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

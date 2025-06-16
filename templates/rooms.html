@@ -1,0 +1,1046 @@
+{% extends "base.html" %}
+
+{% block title %}Rooms Management - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-comments me-2"></i>Rooms Management</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <i class="fas fa-plus me-1"></i>Add Room
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Rooms Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Active Rooms</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="roomsTable">
+                        <thead>
+                            <tr>
+                                <th>Room Name</th>
+                                <th>Room ID</th>
+                                <th>Participants</th>
+                                <th>Bot Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roomsTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    Loading rooms...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary" id="total-rooms">0</h4>
+                <p class="card-text">Total Rooms</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success" id="active-bots">0</h4>
+                <p class="card-text">Active Bots</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info" id="total-participants">0</h4>
+                <p class="card-text">Total Participants</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning" id="messages-today">0</h4>
+                <p class="card-text">Messages Today</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal fade" id="addRoomModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add Room to Monitoring</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRoomForm">
+                    <div class="mb-3">
+                        <label for="roomId" class="form-label">Room ID</label>
+                        <input type="text" class="form-control" id="roomId" required>
+                        <div class="form-text">Enter the Nextcloud Talk room ID</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="roomName" class="form-label">Room Name (Optional)</label>
+                        <input type="text" class="form-control" id="roomName">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Bot must be manually added to rooms in Nextcloud Talk.
+                        Auto-add feature has been disabled for security reasons.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+                <div class="d-flex gap-3">
+                    <button type="button" class="btn-custom btn-cancel" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" class="btn-custom btn-browse" onclick="browseNextcloudRooms()">
+                        <i class="fas fa-search"></i>
+                        <span>Browse Rooms</span>
+                    </button>
+                    <button type="button" class="btn-custom btn-add" onclick="saveRoom()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Room</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nextcloud Rooms Browser Modal -->
+<div class="modal fade" id="browseRoomsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-search me-2"></i>Browse Nextcloud Rooms
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Bot User Rooms:</strong> This list shows only rooms where the bot user is a member.
+                    To see more rooms, manually add the bot user to rooms in Nextcloud Talk first.
+                </div>
+
+                <div id="botUserInfo" class="alert alert-secondary d-none">
+                    <small>
+                        <strong>Bot User:</strong> <span id="botUsername">Loading...</span><br>
+                        <strong>Access Level:</strong> <span id="botAccessLevel">Checking...</span>
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-outline-primary" onclick="loadNextcloudRooms()">
+                        <i class="fas fa-sync-alt"></i> Refresh Rooms List
+                    </button>
+                </div>
+
+                <div id="nextcloudRoomsLoading" class="text-center d-none">
+                    <div class="spinner-border" role="status"></div>
+                    <p class="mt-2">Loading rooms from Nextcloud...</p>
+                </div>
+
+                <div id="nextcloudRoomsError" class="alert alert-danger d-none"></div>
+                <div id="nextcloudRoomsWarning" class="alert alert-info d-none"></div>
+
+                <div id="nextcloudRoomsTable" class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Room Name</th>
+                                <th>Room ID</th>
+                                <th>Type</th>
+                                <th>Participants</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nextcloudRoomsBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    Click "Refresh Rooms List" to load rooms from Nextcloud
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ensure jQuery is loaded -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+// Simple test first
+console.log('🔍 Script loaded');
+
+// Wait for page to load completely
+window.addEventListener('load', function() {
+    console.log('🔍 Window loaded');
+    console.log('🔍 jQuery available:', typeof $);
+
+    if (typeof $ !== 'undefined') {
+        console.log('🔍 Calling loadRooms...');
+        loadRooms();
+    } else {
+        console.error('❌ jQuery not available');
+        // Fallback - try again after delay
+        setTimeout(function() {
+            console.log('🔍 Retry - jQuery available:', typeof $);
+            if (typeof $ !== 'undefined') {
+                loadRooms();
+            }
+        }, 1000);
+    }
+});
+
+function saveRoom() {
+    const roomId = $('#roomId').val();
+    const roomName = $('#roomName').val();
+    const addBot = $('#addBotToRoom').is(':checked');
+    
+    if (!roomId) {
+        alert('Please enter a Room ID');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/rooms',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            room_id: roomId,
+            room_name: roomName,
+            auto_add_bot: false  // Always false - manual add only
+        }),
+        success: function(data) {
+            $('#addRoomModal').modal('hide');
+            $('#addRoomForm')[0].reset();
+            location.reload();
+        },
+        error: function(xhr) {
+            alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
+        }
+    });
+}
+
+function addBotToRoom(roomId) {
+    if (!confirm(`Add bot to room ${roomId}?`)) {
+        return;
+    }
+
+    console.log(`🤖 Adding bot to room ${roomId}...`);
+
+    // First validate room exists
+    console.log(`🔍 Validating room ${roomId}...`);
+    $.get(`/api/rooms/${roomId}/validate`)
+        .done(function(validateData) {
+            console.log('✅ Room validation successful:', validateData);
+
+            if (validateData.status === 'success') {
+                // Room exists, proceed with adding bot
+                console.log(`🤖 Room validated, adding bot to ${roomId}...`);
+
+                $.ajax({
+                    url: `/api/rooms/${roomId}/add-bot`,
+                    method: 'POST',
+                    success: function(data) {
+                        console.log('✅ Bot add response:', data);
+
+                        if (data.status === 'success') {
+                            showAlert(data.message || 'Bot added successfully!', 'success');
+                        } else if (data.status === 'warning') {
+                            showAlert(data.message || 'Bot add completed with warnings', 'warning');
+                        } else {
+                            showAlert(data.message || 'Bot add completed', 'info');
+                        }
+
+                        loadRooms(); // Refresh room list
+                    },
+                    error: function(xhr) {
+                        console.error('❌ Bot add error:', xhr);
+                        let errorMsg = 'Unknown error';
+
+                        if (xhr.responseJSON) {
+                            errorMsg = xhr.responseJSON.message || xhr.responseJSON.error || errorMsg;
+                        }
+
+                        if (xhr.status === 404) {
+                            errorMsg = `Room ${roomId} not found. Please check the room ID.`;
+                        } else if (xhr.status === 429) {
+                            errorMsg = 'Rate limited. Please wait and try again later.';
+                        }
+
+                        showAlert(`Failed to add bot: ${errorMsg}`, 'danger');
+                    }
+                });
+            } else {
+                showAlert(validateData.message || 'Room validation failed', 'warning');
+            }
+        })
+        .fail(function(xhr) {
+            console.error('❌ Room validation failed:', xhr);
+
+            if (xhr.status === 404) {
+                showAlert(`Room ${roomId} not found in Nextcloud. Please check the room ID.`, 'danger');
+            } else if (xhr.status === 429) {
+                showAlert('Rate limited. Please wait and try again later.', 'warning');
+            } else {
+                // Proceed anyway if validation fails due to other reasons
+                console.log('⚠️ Room validation failed, proceeding with bot add anyway...');
+
+                $.ajax({
+                    url: `/api/rooms/${roomId}/add-bot`,
+                    method: 'POST',
+                    success: function(data) {
+                        showAlert(data.message || 'Bot added successfully!', 'success');
+                        loadRooms();
+                    },
+                    error: function(xhr) {
+                        let errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'Unknown error';
+                        showAlert(`Failed to add bot: ${errorMsg}`, 'danger');
+                    }
+                });
+            }
+        });
+}
+
+function removeRoom(roomId) {
+    if (confirm(`Remove room ${roomId} from monitoring?`)) {
+        $.ajax({
+            url: `/api/rooms/${roomId}`,
+            method: 'DELETE',
+            success: function(data) {
+                alert(data.message || 'Room removed successfully');
+                loadRooms();
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.message : 'Unknown error'));
+            }
+        });
+    }
+}
+
+function viewRoom(roomId) {
+    // Get room participants
+    $.get(`/api/rooms/${roomId}/participants`)
+        .done(function(data) {
+            let participants = data.participants || [];
+            let participantList = participants.map(p => `• ${p.display_name || p.user_id}`).join('\n');
+            alert(`Room ${roomId} Participants:\n\n${participantList || 'No participants found'}`);
+        })
+        .fail(function() {
+            alert('Failed to get room participants');
+        });
+}
+
+function loadRooms() {
+    console.log('🏠 Loading rooms...');
+    console.log('🔍 jQuery available:', typeof $);
+    console.log('🔍 roomsTableBody element:', $('#roomsTableBody').length);
+
+    // Show loading state
+    $('#roomsTableBody').html(`
+        <tr>
+            <td colspan="5" class="text-center">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                Loading rooms...
+            </td>
+        </tr>
+    `);
+
+    console.log('🔄 Making API request to /api/rooms...');
+
+    // Try the main API first, fallback to test API if needed
+    $.get('/api/rooms')
+        .done(function(data) {
+            console.log('✅ Rooms loaded from main API:', data);
+            console.log('✅ Data type:', typeof data);
+            console.log('✅ Data status:', data ? data.status : 'no data');
+            console.log('✅ Rooms array:', data ? data.rooms : 'no rooms');
+
+            if (data && data.status === 'success') {
+                console.log('✅ Calling updateRoomsTable with:', data.rooms);
+                updateRoomsTable(data.rooms || []);
+            } else {
+                console.log('⚠️ No rooms data received, showing empty state');
+                $('#roomsTableBody').html('<tr><td colspan="5" class="text-center text-warning">No rooms configured yet</td></tr>');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('❌ Main API failed, trying test API:', error);
+            console.error('❌ Status:', status);
+            console.error('❌ Response:', xhr.responseText);
+
+            // Fallback to test API
+            $.get('/api/rooms/test')
+                .done(function(testData) {
+                    console.log('✅ Rooms loaded from test API:', testData);
+                    if (testData && testData.status === 'success') {
+                        updateRoomsTable(testData.rooms || []);
+                    } else {
+                        $('#roomsTableBody').html('<tr><td colspan="5" class="text-center text-warning">No rooms configured yet</td></tr>');
+                    }
+                })
+                .fail(function(testXhr, testStatus, testError) {
+                    console.error('❌ Both APIs failed:', testError);
+                    let errorMessage = 'Failed to load rooms';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                    }
+                    $('#roomsTableBody').html(`<tr><td colspan="5" class="text-center text-danger">${errorMessage}</td></tr>`);
+                });
+        });
+}
+
+function updateRoomsTable(rooms) {
+    console.log('📊 updateRoomsTable called with:', rooms);
+    console.log('📊 Rooms length:', rooms ? rooms.length : 'null/undefined');
+
+    const tbody = $('#roomsTableBody');
+    console.log('📊 tbody element found:', tbody.length);
+    tbody.empty();
+
+    if (!rooms || rooms.length === 0) {
+        console.log('📊 No rooms to display');
+        tbody.append(`
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Rooms Added Yet</h5>
+                        <p class="text-muted">Add your first Nextcloud Talk room to start monitoring</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                            <i class="fas fa-plus me-1"></i>Add First Room
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `);
+        updateStats(0, 0, 0, 0);
+        return;
+    }
+
+    let totalParticipants = 0;
+    let activeBots = 0;
+
+    console.log('📊 Processing', rooms.length, 'rooms...');
+    rooms.forEach((room, index) => {
+        console.log(`📊 Processing room ${index + 1}:`, room);
+        const roomId = room.room_id || room.id;
+        const roomName = room.room_name || room.display_name || room.name || 'Unknown';
+        const participants = room.participant_count || 0;
+        const botStatus = room.bot_status || 'unknown';
+
+        totalParticipants += participants;
+        // Fix bot status counting - check for all active states
+        const statusLower = botStatus.toLowerCase();
+        if (statusLower === 'active' || statusLower === 'configured' || statusLower === 'pending') {
+            activeBots++;
+        }
+
+        // Determine status badge
+        let statusBadge = '';
+        switch(botStatus.toLowerCase()) {
+            case 'active':
+                statusBadge = '<span class="badge bg-success">Active</span>';
+                break;
+            case 'inactive':
+                statusBadge = '<span class="badge bg-warning">Inactive</span>';
+                break;
+            case 'pending':
+                statusBadge = '<span class="badge bg-info">Pending</span>';
+                break;
+            case 'configured':
+                statusBadge = '<span class="badge bg-primary">Configured</span>';
+                break;
+            case 'not connected':
+                statusBadge = '<span class="badge bg-warning">Not Connected</span>';
+                break;
+            case 'config error':
+                statusBadge = '<span class="badge bg-danger">Config Error</span>';
+                break;
+            case 'connection error':
+                statusBadge = '<span class="badge bg-danger">Connection Error</span>';
+                break;
+            case 'timeout':
+                statusBadge = '<span class="badge bg-warning">Timeout</span>';
+                break;
+            case 'error':
+                statusBadge = '<span class="badge bg-danger">Error</span>';
+                break;
+            default:
+                statusBadge = `<span class="badge bg-secondary">${botStatus}</span>`;
+        }
+
+        const row = `
+            <tr>
+                <td>${roomName}</td>
+                <td><code style="color: #e83e8c;">${roomId}</code></td>
+                <td><span class="badge bg-info">${participants} users</span></td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewRoom('${roomId}')" title="View participants">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-info me-1" onclick="refreshRoom('${roomId}')" title="Refresh room">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeRoom('${roomId}')" title="Remove room">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        console.log(`📊 Adding row for room ${roomId}:`, row);
+        tbody.append(row);
+    });
+
+    // Update statistics
+    updateStats(rooms.length, activeBots, totalParticipants, 0);
+}
+
+function updateStats(totalRooms, activeBots, totalParticipants, messagesToday) {
+    console.log('📊 Updating stats:', {totalRooms, activeBots, totalParticipants, messagesToday});
+
+    // Update the stats cards using IDs
+    $('#total-rooms').text(totalRooms);
+    $('#active-bots').text(activeBots);
+    $('#total-participants').text(totalParticipants);
+    $('#messages-today').text(messagesToday);
+
+    console.log('📊 Stats updated successfully');
+}
+
+// Alert function for better user feedback
+function showAlert(message, type = 'info') {
+    // Remove existing alerts
+    $('.alert-custom').remove();
+
+    const alertClass = `alert-${type}`;
+    const iconClass = type === 'success' ? 'fa-check-circle' :
+                     type === 'danger' ? 'fa-exclamation-triangle' :
+                     type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show alert-custom" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="fas ${iconClass} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    $('body').append(alertHtml);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        $('.alert-custom').fadeOut();
+    }, 5000);
+}
+
+// Room Browser Functions
+function browseNextcloudRooms() {
+    console.log('🔍 Opening Nextcloud rooms browser...');
+    $('#browseRoomsModal').modal('show');
+}
+
+function loadNextcloudRooms() {
+    console.log('🔍 Loading Nextcloud rooms...');
+
+    // Show loading state
+    $('#nextcloudRoomsLoading').removeClass('d-none');
+    $('#nextcloudRoomsError').addClass('d-none');
+    $('#nextcloudRoomsBody').html(`
+        <tr>
+            <td colspan="5" class="text-center">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                Loading...
+            </td>
+        </tr>
+    `);
+
+    $.get('/api/nextcloud/rooms')
+        .done(function(data) {
+            console.log('✅ Nextcloud rooms loaded:', data);
+            $('#nextcloudRoomsLoading').addClass('d-none');
+
+            if (data.status === 'success' && data.rooms) {
+                updateNextcloudRoomsTable(data.rooms);
+            } else {
+                $('#nextcloudRoomsError').removeClass('d-none').text(data.message || 'No rooms found');
+                $('#nextcloudRoomsBody').html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-warning">
+                            ${data.message || 'No rooms found in Nextcloud'}
+                        </td>
+                    </tr>
+                `);
+            }
+        })
+        .fail(function(xhr) {
+            console.error('❌ Failed to load Nextcloud rooms:', xhr);
+            $('#nextcloudRoomsLoading').addClass('d-none');
+
+            let errorMsg = 'Failed to load rooms from Nextcloud';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 429) {
+                errorMsg = 'Rate limited. Please wait and try again later.';
+            }
+
+            $('#nextcloudRoomsError').removeClass('d-none').text(errorMsg);
+            $('#nextcloudRoomsBody').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        ${errorMsg}
+                    </td>
+                </tr>
+            `);
+        });
+}
+
+function updateNextcloudRoomsTable(rooms) {
+    console.log('📊 Updating Nextcloud rooms table with:', rooms);
+
+    const tbody = $('#nextcloudRoomsBody');
+    tbody.empty();
+
+    if (!rooms || rooms.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No rooms found in Nextcloud
+                </td>
+            </tr>
+        `);
+        return;
+    }
+
+    rooms.forEach(room => {
+        const roomType = room.type === 2 ? 'Group' :
+                        room.type === 3 ? 'Public' :
+                        room.type === 1 ? 'One-to-one' : 'Unknown';
+
+        const row = `
+            <tr>
+                <td>
+                    <strong>${room.name || 'Unnamed Room'}</strong>
+                    ${room.has_password ? '<i class="fas fa-lock text-warning ms-1" title="Password protected"></i>' : ''}
+                </td>
+                <td>
+                    <code style="color: #e83e8c;">${room.id || room.token}</code>
+                </td>
+                <td>
+                    <span class="badge bg-secondary">${roomType}</span>
+                </td>
+                <td>
+                    <span class="badge bg-info">${room.participant_count || 0} users</span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-success" onclick="selectRoom('${room.id || room.token}', '${(room.name || 'Unnamed Room').replace(/'/g, "\\'")}')">
+                        <i class="fas fa-plus"></i> Select
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function selectRoom(roomId, roomName) {
+    console.log(`✅ Selected room: ${roomId} (${roomName})`);
+
+    // Fill the add room form
+    $('#roomId').val(roomId);
+    $('#roomName').val(roomName);
+
+    // Close browser modal and show add room modal
+    $('#browseRoomsModal').modal('hide');
+
+    // Show success message
+    showAlert(`Room "${roomName}" selected. You can now add it to monitoring.`, 'success');
+}
+
+// Refresh Room Function
+function refreshRoom(roomId) {
+    console.log(`🔄 Refreshing room: ${roomId}`);
+
+    // Show loading state
+    showAlert('Refreshing room data...', 'info');
+
+    $.ajax({
+        url: `/api/rooms/${roomId}/refresh`,
+        method: 'POST',
+        success: function(data) {
+            console.log('✅ Room refreshed:', data);
+
+            if (data.status === 'success') {
+                showAlert(`Room refreshed: ${data.room_info.name} (${data.room_info.participant_count} participants)`, 'success');
+
+                // Reload rooms to show updated data
+                loadRooms();
+            } else {
+                showAlert(data.message || 'Room refresh completed with warnings', 'warning');
+            }
+        },
+        error: function(xhr) {
+            console.error('❌ Failed to refresh room:', xhr);
+
+            let errorMsg = 'Failed to refresh room';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 404) {
+                errorMsg = 'Room not found or no longer accessible';
+            } else if (xhr.status === 429) {
+                errorMsg = 'Rate limited. Please wait and try again later.';
+            }
+
+            showAlert(errorMsg, 'danger');
+        }
+    });
+}
+
+function browseNextcloudRooms() {
+    // Hide add room modal and show browse modal
+    $('#addRoomModal').modal('hide');
+    $('#browseRoomsModal').modal('show');
+
+    // Auto-load rooms when modal opens
+    setTimeout(() => {
+        loadNextcloudRooms();
+    }, 500);
+}
+
+function loadNextcloudRooms() {
+    console.log('🔍 Loading Nextcloud rooms...');
+
+    // Show loading state
+    $('#nextcloudRoomsLoading').removeClass('d-none');
+    $('#nextcloudRoomsError').addClass('d-none');
+    $('#nextcloudRoomsWarning').addClass('d-none');
+    $('#nextcloudRoomsBody').html(`
+        <tr>
+            <td colspan="5" class="text-center">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                Loading rooms from Nextcloud...
+            </td>
+        </tr>
+    `);
+
+    // Load bot user info first
+    loadBotUserInfo();
+
+    // Call API to get Nextcloud rooms
+    $.get('/api/nextcloud/rooms')
+        .done(function(data) {
+            console.log('✅ Nextcloud rooms response:', data);
+            $('#nextcloudRoomsLoading').addClass('d-none');
+
+            if (data.status === 'success' && data.rooms && data.rooms.length > 0) {
+                // Show rooms
+                displayNextcloudRooms(data.rooms);
+            } else if (data.status === 'warning') {
+                // Show warning message
+                $('#nextcloudRoomsWarning').removeClass('d-none').html(
+                    `<i class="fas fa-info-circle me-2"></i>${data.message}`
+                );
+                $('#nextcloudRoomsBody').html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                            ${data.note || 'No rooms available'}
+                        </td>
+                    </tr>
+                `);
+            } else {
+                // No rooms found
+                $('#nextcloudRoomsBody').html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="fas fa-comments fa-2x mb-2"></i><br>
+                            No rooms found
+                        </td>
+                    </tr>
+                `);
+            }
+        })
+        .fail(function(xhr) {
+            console.error('❌ Failed to load Nextcloud rooms:', xhr);
+            $('#nextcloudRoomsLoading').addClass('d-none');
+
+            let errorMsg = 'Failed to connect to Nextcloud';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            }
+
+            $('#nextcloudRoomsError').removeClass('d-none').text(errorMsg);
+            $('#nextcloudRoomsBody').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                        ${errorMsg}
+                    </td>
+                </tr>
+            `);
+        });
+}
+
+function displayNextcloudRooms(rooms) {
+    console.log('📋 Displaying', rooms.length, 'Nextcloud rooms');
+
+    const tbody = $('#nextcloudRoomsBody');
+    tbody.empty();
+
+    rooms.forEach(room => {
+        const roomId = room.token || room.id || room.room_id;
+        const roomName = room.displayName || room.name || room.room_name || 'Unknown';
+        const roomType = room.type === 1 ? 'One-to-one' : room.type === 2 ? 'Group' : room.type === 3 ? 'Public' : 'Unknown';
+        const participants = room.participantCount || room.participants || 0;
+
+        const row = `
+            <tr>
+                <td>${roomName}</td>
+                <td><code style="color: #e83e8c;">${roomId}</code></td>
+                <td><span class="badge bg-secondary">${roomType}</span></td>
+                <td><span class="badge bg-info">${participants} users</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="selectRoomFromBrowser('${roomId}', '${roomName}')">
+                        <i class="fas fa-plus me-1"></i>Select
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function selectRoomFromBrowser(roomId, roomName) {
+    // Close browse modal and return to add room modal
+    $('#browseRoomsModal').modal('hide');
+    $('#addRoomModal').modal('show');
+
+    // Fill in the form
+    $('#roomId').val(roomId);
+    $('#roomName').val(roomName);
+
+    console.log(`✅ Selected room: ${roomName} (${roomId})`);
+}
+
+function loadBotUserInfo() {
+    console.log('👤 Loading bot user info...');
+
+    $.get('/api/nextcloud/user-info')
+        .done(function(data) {
+            console.log('✅ Bot user info loaded:', data);
+
+            if (data.status === 'success') {
+                $('#botUsername').text(data.username || 'Unknown');
+                $('#botAccessLevel').text(data.room_access || 'Limited access');
+                $('#botUserInfo').removeClass('d-none');
+
+                // Update alert based on admin status
+                if (data.is_admin) {
+                    $('#botUserInfo').removeClass('alert-secondary').addClass('alert-success');
+                } else {
+                    $('#botUserInfo').removeClass('alert-success').addClass('alert-warning');
+                }
+            }
+        })
+        .fail(function(xhr) {
+            console.error('❌ Failed to load bot user info:', xhr);
+            $('#botUsername').text('Error loading');
+            $('#botAccessLevel').text('Unknown');
+            $('#botUserInfo').removeClass('d-none alert-success').addClass('alert-danger');
+        });
+}
+
+function removeRoom(roomId) {
+    console.log(`🗑️ Removing room: ${roomId}`);
+
+    if (!confirm(`Are you sure you want to remove room ${roomId} from monitoring?`)) {
+        return;
+    }
+
+    // Show loading state
+    showAlert('Removing room from monitoring...', 'info');
+
+    $.ajax({
+        url: `/api/rooms/${roomId}`,
+        method: 'DELETE',
+        success: function(data) {
+            console.log('✅ Room removed:', data);
+
+            if (data.status === 'success') {
+                showAlert(`Room ${roomId} removed from monitoring successfully`, 'success');
+
+                // Reload rooms to show updated list
+                loadRooms();
+            } else {
+                showAlert(data.message || 'Room removal completed with warnings', 'warning');
+            }
+        },
+        error: function(xhr) {
+            console.error('❌ Failed to remove room:', xhr);
+
+            let errorMsg = 'Failed to remove room';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 404) {
+                errorMsg = 'Room not found in monitoring list';
+            }
+
+            showAlert(errorMsg, 'danger');
+        }
+    });
+}
+
+</script>
+
+<style>
+.empty-state {
+    padding: 2rem;
+}
+.empty-state i {
+    opacity: 0.5;
+}
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Custom Button Styles */
+.btn-custom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border: none;
+    border-radius: 15px; /* Square with rounded corners */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-custom:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    color: white;
+}
+
+.btn-custom:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn-custom i {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.btn-custom span {
+    font-size: 10px;
+    line-height: 1;
+}
+
+/* Specific button colors */
+.btn-cancel {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.btn-cancel:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+}
+
+.btn-browse {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.btn-browse:hover {
+    background: linear-gradient(135deg, #138496 0%, #0f6674 100%);
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.btn-add:hover {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+}
+
+/* Alternative: Circular buttons */
+.btn-custom.btn-circle {
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+}
+
+/* Ripple effect */
+.btn-custom::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: width 0.6s, height 0.6s, top 0.6s, left 0.6s;
+    transform: translate(-50%, -50%);
+}
+
+.btn-custom:active::before {
+    width: 100px;
+    height: 100px;
+    top: 50%;
+    left: 50%;
+}
+</style>
+{% endblock %}

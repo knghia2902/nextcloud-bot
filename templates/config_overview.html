@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration Overview - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-cog me-2"></i>Configuration Overview</h2>
+                <p class="text-muted">Tổng quan cấu hình bot và trạng thái kết nối</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary me-2" onclick="window.location.href='/setup'">
+                    <i class="fas fa-magic me-1"></i>Setup Wizard
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='/settings'">
+                    <i class="fas fa-edit me-1"></i>Edit Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Setup Status Banner -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-success border-0 shadow-sm" id="setup-status">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Setup Completed Successfully!</h5>
+                    <p class="mb-0">Bot đã được cấu hình và sẵn sàng hoạt động. Completed at: <span id="setup-time">{{ config.setup_completed_at or 'Unknown' }}</span></p>
+                </div>
+                <div class="ms-auto">
+                    <span class="badge bg-success fs-6">✅ Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Cards -->
+<div class="row">
+    <!-- Nextcloud Configuration -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-cloud me-2"></i>Nextcloud Talk</h6>
+                    <span class="badge bg-light text-primary" id="nextcloud-status">
+                        {{ 'Enabled' if config.nextcloud.enabled else 'Disabled' }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-2">
+                            <strong>URL:</strong>
+                            <span class="text-muted">{{ config.nextcloud.url or 'Not configured' }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Username:</strong>
+                            <span class="text-muted">{{ config.nextcloud.username or 'Not configured' }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Room ID:</strong>
+                            <span class="text-muted">{{ config.nextcloud.room_id or 'Not configured' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="testConnection('nextcloud')">
+                        <i class="fas fa-plug me-1"></i>Test
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editConfig('nextcloud')">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div id="nextcloud-test-result" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OpenRouter AI Configuration -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 border-info">
+            <div class="card-header bg-info text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-brain me-2"></i>OpenRouter AI</h6>
+                    <span class="badge bg-light text-info" id="openrouter-status">
+                        {{ 'Enabled' if config.openrouter.enabled else 'Disabled' }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Model:</strong>
+                    <span class="text-muted">{{ config.openrouter.model or 'Not configured' }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>API Key:</strong>
+                    <span class="text-muted">
+                        {{ '***' + config.openrouter.api_key[-8:] if config.openrouter.api_key else 'Not configured' }}
+                    </span>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-info" onclick="testConnection('openrouter')">
+                        <i class="fas fa-robot me-1"></i>Test
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editConfig('openrouter')">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div id="openrouter-test-result" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Sheets Integration -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-table me-2"></i>Google Sheets</h6>
+                    <span class="badge bg-light text-success" id="sheets-status">
+                        {{ 'Enabled' if config.integrations.google_sheets.enabled else 'Disabled' }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Spreadsheet ID:</strong>
+                    <span class="text-muted">{{ config.integrations.google_sheets.spreadsheet_id or 'Not configured' }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Credentials:</strong>
+                    <span class="text-muted">{{ 'Uploaded' if config.integrations.google_sheets.credentials_file else 'Not uploaded' }}</span>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-success" onclick="testConnection('sheets')">
+                        <i class="fas fa-table me-1"></i>Test
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editConfig('integrations')">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div id="sheets-test-result" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- n8n Webhook Integration -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-link me-2"></i>n8n Webhook</h6>
+                    <span class="badge bg-dark text-warning" id="n8n-status">
+                        {{ 'Enabled' if config.integrations.n8n_enabled else 'Disabled' }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Webhook URL:</strong>
+                    <span class="text-muted">{{ config.integrations.n8n_webhook_url or 'Not configured' }}</span>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-warning" onclick="testConnection('n8n')">
+                        <i class="fas fa-link me-1"></i>Test
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editConfig('integrations')">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div id="n8n-test-result" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bot Settings -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-secondary">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-robot me-2"></i>Bot Settings</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <strong>Bot Name:</strong>
+                            <span class="text-muted">{{ config.bot_settings.bot_name or 'NextcloudBot' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <strong>Language:</strong>
+                            <span class="text-muted">{{ config.bot_settings.language or 'vi' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <strong>Auto Response:</strong>
+                            <span class="badge bg-{{ 'success' if config.bot_settings.auto_response else 'secondary' }}">
+                                {{ 'Enabled' if config.bot_settings.auto_response else 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <strong>Log Level:</strong>
+                            <span class="text-muted">{{ config.bot_settings.log_level or 'INFO' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editConfig('bot_settings')">
+                        <i class="fas fa-edit me-1"></i>Edit Bot Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-success" onclick="startBot()">
+                        <i class="fas fa-play me-1"></i>Start Bot
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="testAllConnections()">
+                        <i class="fas fa-network-wired me-1"></i>Test All
+                    </button>
+                    <button class="btn btn-outline-info" onclick="window.location.href='/rooms'">
+                        <i class="fas fa-home me-1"></i>Manage Rooms
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="window.location.href='/commands'">
+                        <i class="fas fa-terminal me-1"></i>Commands
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="downloadConfig()">
+                        <i class="fas fa-download me-1"></i>Export Config
+                    </button>
+                </div>
+                <div id="action-results" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Load and display current configuration
+    loadConfigOverview();
+});
+
+function loadConfigOverview() {
+    $.get('/api/config')
+        .done(function(data) {
+            console.log('Config loaded:', data);
+            // Update UI with loaded config
+            updateConfigDisplay(data);
+        })
+        .fail(function() {
+            console.error('Failed to load configuration');
+        });
+}
+
+function updateConfigDisplay(config) {
+    // Update status badges and content based on loaded config
+    // This function would update the display with real data
+}
+
+function editConfig(section) {
+    // Redirect to settings page with specific tab
+    window.location.href = `/settings#${section}`;
+}
+
+function testConnection(service) {
+    // Test specific service connection
+    const $result = $(`#${service}-test-result`);
+    $result.html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-1"></i>Testing...</div>');
+    
+    $.post(`/api/test/${service}`)
+        .done(function(response) {
+            if (response.status === 'success') {
+                $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+            } else {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+            }
+        })
+        .fail(function() {
+            $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Test failed</div>');
+        });
+}
+
+function testAllConnections() {
+    ['nextcloud', 'openrouter', 'sheets', 'n8n'].forEach(service => {
+        testConnection(service);
+    });
+}
+
+function startBot() {
+    const $result = $('#action-results');
+    $result.html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-1"></i>Starting bot...</div>');
+    
+    $.post('/api/bot/start')
+        .done(function(response) {
+            if (response.status === 'success') {
+                $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+            } else {
+                $result.html('<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-1"></i>' + response.message + '</div>');
+            }
+        })
+        .fail(function() {
+            $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Failed to start bot</div>');
+        });
+}
+
+function downloadConfig() {
+    $.get('/api/config/export')
+        .done(function(response) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(response.config, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "nextcloud-bot-config.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            
+            $('#action-results').html('<div class="alert alert-info"><i class="fas fa-download me-1"></i>Configuration downloaded</div>');
+        })
+        .fail(function() {
+            $('#action-results').html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Download failed</div>');
+        });
+}
+</script>
+{% endblock %}

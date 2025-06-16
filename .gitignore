@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+*.log
+
+# Sensitive Configuration Files
+config/credentials.json
+config/admin_password.txt
+config/*.env
+credentials.json
+*.key
+*.pem
+*.p12
+
+# Config files with data (keep templates)
+config/user_commands.json
+config/web_settings.json
+config/master.json
+config/monitored_rooms.json
+config/web_config.py
+cookies.txt
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+config/*.db
+config/commands_*.db
+
+# Backup Files
+config/backup_*
+
+# Data and backups
+data/database/
+backups/
+*.backup
+*.tmp
+*.old
+
+# Docker
+.env
+
+# Test files
+test_*.py
+*_test.py

@@ -1,0 +1,281 @@
+<div class="step-content">
+    <div class="text-center mb-4">
+        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+        <h3 class="mt-3">Setup Hoàn Thành!</h3>
+        <p class="text-muted">Bot đã được cấu hình thành công và sẵn sàng hoạt động</p>
+    </div>
+    
+    <!-- Configuration Summary -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-list-check me-1"></i><strong>Tóm tắt Cấu hình</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-cloud me-1"></i>Nextcloud</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>URL:</strong> <span id="summary-nextcloud-url">{{ config.nextcloud.url or 'Chưa cấu hình' }}</span></li>
+                        <li><strong>Username:</strong> <span id="summary-nextcloud-user">{{ config.nextcloud.username or 'Chưa cấu hình' }}</span></li>
+                        <li><strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if config.nextcloud.enabled else 'secondary' }}">
+                                {{ 'Enabled' if config.nextcloud.enabled else 'Disabled' }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6><i class="fas fa-brain me-1"></i>OpenRouter AI</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Model:</strong> <span id="summary-ai-model">{{ config.openrouter.model or 'Chưa cấu hình' }}</span></li>
+                        <li><strong>API Key:</strong> 
+                            <span id="summary-ai-key">
+                                {{ '***' + config.openrouter.api_key[-8:] if config.openrouter.api_key else 'Chưa cấu hình' }}
+                            </span>
+                        </li>
+                        <li><strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if config.openrouter.enabled else 'secondary' }}">
+                                {{ 'Enabled' if config.openrouter.enabled else 'Disabled' }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-plug me-1"></i>Integrations</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Google Sheets:</strong> 
+                            <span class="badge bg-{{ 'success' if config.integrations.google_sheets.enabled else 'secondary' }}">
+                                {{ 'Enabled' if config.integrations.google_sheets.enabled else 'Disabled' }}
+                            </span>
+                        </li>
+                        <li><strong>n8n Webhook:</strong> 
+                            <span class="badge bg-{{ 'success' if config.integrations.n8n_enabled else 'secondary' }}">
+                                {{ 'Enabled' if config.integrations.n8n_enabled else 'Disabled' }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6><i class="fas fa-robot me-1"></i>Bot Settings</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Bot Name:</strong> <span id="summary-bot-name">{{ config.bot_settings.bot_name or 'NextcloudBot' }}</span></li>
+                        <li><strong>Language:</strong> <span id="summary-language">{{ config.bot_settings.language or 'vi' }}</span></li>
+                        <li><strong>Auto Response:</strong> 
+                            <span class="badge bg-{{ 'success' if config.bot_settings.auto_response else 'secondary' }}">
+                                {{ 'Enabled' if config.bot_settings.auto_response else 'Disabled' }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Next Steps -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-arrow-right me-1"></i><strong>Bước tiếp theo</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>1. Thêm Bot vào Rooms</h6>
+                    <p class="text-muted">Thêm bot vào các room Nextcloud Talk để bắt đầu sử dụng</p>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.location.href='/rooms'">
+                        <i class="fas fa-plus me-1"></i>Manage Rooms
+                    </button>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6>2. Test Bot</h6>
+                    <p class="text-muted">Kiểm tra bot hoạt động bằng cách gửi tin nhắn test</p>
+                    <button type="button" id="test-bot" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-play me-1"></i>Test Bot
+                    </button>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>3. Cấu hình Commands</h6>
+                    <p class="text-muted">Tùy chỉnh các lệnh và phản hồi của bot</p>
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="window.location.href='/commands'">
+                        <i class="fas fa-terminal me-1"></i>Manage Commands
+                    </button>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6>4. Monitor & Logs</h6>
+                    <p class="text-muted">Theo dõi hoạt động và xem logs của bot</p>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="window.location.href='/monitoring'">
+                        <i class="fas fa-chart-line me-1"></i>View Monitoring
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card border-success">
+        <div class="card-header bg-light">
+            <i class="fas fa-rocket me-1"></i><strong>Quick Actions</strong>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" id="start-bot" class="btn btn-success">
+                    <i class="fas fa-play me-1"></i>Start Bot
+                </button>
+                
+                <button type="button" id="view-dashboard" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt me-1"></i>Go to Dashboard
+                </button>
+                
+                <button type="button" id="download-config" class="btn btn-outline-secondary">
+                    <i class="fas fa-download me-1"></i>Download Config
+                </button>
+                
+                <button type="button" id="reset-setup" class="btn btn-outline-danger">
+                    <i class="fas fa-redo me-1"></i>Reset Setup
+                </button>
+            </div>
+            
+            <div id="action-result" class="mt-3"></div>
+        </div>
+    </div>
+    
+    <!-- Success Message -->
+    <div class="alert alert-success mt-4">
+        <i class="fas fa-party-horn me-1"></i>
+        <strong>Chúc mừng!</strong> Bot của bạn đã được cấu hình thành công. 
+        Bây giờ bạn có thể bắt đầu sử dụng bot trong Nextcloud Talk.
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Test bot functionality
+    $('#test-bot').click(function() {
+        var $btn = $(this);
+        var $result = $('#action-result');
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Testing...');
+        
+        $.ajax({
+            url: '/api/bot/test',
+            method: 'POST',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+                } else {
+                    $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi khi test bot</div>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Test Bot');
+            }
+        });
+    });
+    
+    // Start bot
+    $('#start-bot').click(function() {
+        var $btn = $(this);
+        var $result = $('#action-result');
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Starting...');
+        
+        $.ajax({
+            url: '/api/bot/start',
+            method: 'POST',
+            success: function(response) {
+                if (response.status === 'success') {
+                    $result.html('<div class="alert alert-success"><i class="fas fa-check me-1"></i>' + response.message + '</div>');
+                    $btn.html('<i class="fas fa-check me-1"></i>Bot Started').removeClass('btn-success').addClass('btn-outline-success');
+                } else {
+                    $result.html('<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-1"></i>' + response.message + '</div>');
+                    $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Start Bot');
+                }
+            },
+            error: function() {
+                $result.html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi khi khởi động bot</div>');
+                $btn.prop('disabled', false).html('<i class="fas fa-play me-1"></i>Start Bot');
+            }
+        });
+    });
+    
+    // Go to dashboard
+    $('#view-dashboard').click(function() {
+        window.location.href = '/config-overview';
+    });
+    
+    // Download configuration
+    $('#download-config').click(function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Preparing...');
+        
+        $.ajax({
+            url: '/api/config/export',
+            method: 'GET',
+            success: function(response) {
+                // Create download link
+                var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(response.config, null, 2));
+                var downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "nextcloud-bot-config.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                
+                $('#action-result').html('<div class="alert alert-info"><i class="fas fa-download me-1"></i>Configuration downloaded successfully</div>');
+            },
+            error: function() {
+                $('#action-result').html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi khi tải config</div>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-download me-1"></i>Download Config');
+            }
+        });
+    });
+    
+    // Reset setup
+    $('#reset-setup').click(function() {
+        if (confirm('Bạn có chắc muốn reset toàn bộ setup? Tất cả cấu hình sẽ bị xóa.')) {
+            var $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Resetting...');
+            
+            $.ajax({
+                url: '/api/setup/reset',
+                method: 'POST',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#action-result').html('<div class="alert alert-warning"><i class="fas fa-redo me-1"></i>Setup reset successfully. Redirecting...</div>');
+                        setTimeout(function() {
+                            window.location.href = '/setup';
+                        }, 2000);
+                    } else {
+                        $('#action-result').html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>' + response.message + '</div>');
+                        $btn.prop('disabled', false).html('<i class="fas fa-redo me-1"></i>Reset Setup');
+                    }
+                },
+                error: function() {
+                    $('#action-result').html('<div class="alert alert-danger"><i class="fas fa-times me-1"></i>Lỗi khi reset setup</div>');
+                    $btn.prop('disabled', false).html('<i class="fas fa-redo me-1"></i>Reset Setup');
+                }
+            });
+        }
+    });
+    
+    // Note: Alerts will stay visible (no auto-dismiss)
+});
+</script>

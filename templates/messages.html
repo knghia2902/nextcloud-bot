@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Messages Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-comments me-2"></i>Messages Management</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshMessages()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                    <button class="btn btn-success" onclick="sendTestMessage()">
+                        <i class="fas fa-paper-plane me-1"></i>Send Test Message
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Messages</h6>
+                                    <h3 id="total-messages">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-comments fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Today's Messages</h6>
+                                    <h3 id="today-messages">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-calendar-day fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Bot Responses</h6>
+                                    <h3 id="bot-responses">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-robot fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Commands Used</h6>
+                                    <h3 id="commands-used">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-terminal fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Filters -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-filter me-2"></i>Message Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="roomFilter" class="form-label">Room</label>
+                            <select class="form-select" id="roomFilter">
+                                <option value="">All Rooms</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="userFilter" class="form-label">User</label>
+                            <input type="text" class="form-control" id="userFilter" placeholder="Filter by user">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateFilter" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="dateFilter">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="typeFilter" class="form-label">Type</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="">All Types</option>
+                                <option value="user">User Messages</option>
+                                <option value="bot">Bot Responses</option>
+                                <option value="command">Commands</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-primary" onclick="applyFilters()">
+                                <i class="fas fa-search me-1"></i>Apply Filters
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Recent Messages</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Room</th>
+                                    <th>User</th>
+                                    <th>Message</th>
+                                    <th>Type</th>
+                                    <th>Response</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="messagesTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        Loading messages...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Test Message Modal -->
+<div class="modal fade" id="testMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Test Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="testRoom" class="form-label">Room</label>
+                    <select class="form-select" id="testRoom">
+                        <option value="">Select Room</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="testMessage" class="form-label">Message</label>
+                    <textarea class="form-control" id="testMessage" rows="3" placeholder="Enter test message"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load messages on page load
+$(document).ready(function() {
+    loadMessages();
+    loadRooms();
+    loadStats();
+});
+
+function loadMessages() {
+    console.log('Loading messages...');
+    
+    $.get('/api/messages')
+        .done(function(data) {
+            if (data.status === 'success') {
+                updateMessagesTable(data.messages || []);
+            } else {
+                $('#messagesTableBody').html(`
+                    <tr>
+                        <td colspan="7" class="text-center text-warning">
+                            ${data.message || 'No messages available'}
+                        </td>
+                    </tr>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#messagesTableBody').html(`
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        Failed to load messages
+                    </td>
+                </tr>
+            `);
+        });
+}
+
+function updateMessagesTable(messages) {
+    const tbody = $('#messagesTableBody');
+    tbody.empty();
+    
+    if (messages.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No messages found
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    messages.forEach(message => {
+        const row = `
+            <tr>
+                <td>${new Date(message.timestamp).toLocaleString()}</td>
+                <td>${message.room_id}</td>
+                <td>${message.user_id}</td>
+                <td>${message.message.substring(0, 50)}${message.message.length > 50 ? '...' : ''}</td>
+                <td><span class="badge bg-${getTypeColor(message.type)}">${message.type}</span></td>
+                <td>${message.response ? message.response.substring(0, 30) + '...' : '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewMessage('${message.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function getTypeColor(type) {
+    switch(type) {
+        case 'user': return 'primary';
+        case 'bot': return 'success';
+        case 'command': return 'warning';
+        default: return 'secondary';
+    }
+}
+
+function loadRooms() {
+    $.get('/api/rooms')
+        .done(function(data) {
+            if (data.status === 'success') {
+                const rooms = data.rooms || [];
+                const roomSelect = $('#roomFilter, #testRoom');
+                roomSelect.empty().append('<option value="">Select Room</option>');
+                
+                rooms.forEach(room => {
+                    roomSelect.append(`<option value="${room.room_id}">${room.room_name}</option>`);
+                });
+            }
+        });
+}
+
+function loadStats() {
+    $.get('/api/messages/stats')
+        .done(function(data) {
+            if (data.status === 'success') {
+                $('#total-messages').text(data.total || 0);
+                $('#today-messages').text(data.today || 0);
+                $('#bot-responses').text(data.bot_responses || 0);
+                $('#commands-used').text(data.commands || 0);
+            }
+        });
+}
+
+function refreshMessages() {
+    loadMessages();
+    loadStats();
+}
+
+function sendTestMessage() {
+    $('#testMessageModal').modal('show');
+}
+
+function sendMessage() {
+    const room = $('#testRoom').val();
+    const message = $('#testMessage').val();
+    
+    if (!room || !message) {
+        alert('Please select a room and enter a message');
+        return;
+    }
+    
+    $.post('/api/messages/send', {
+        room_id: room,
+        message: message
+    })
+    .done(function(data) {
+        if (data.status === 'success') {
+            alert('Message sent successfully');
+            $('#testMessageModal').modal('hide');
+            loadMessages();
+        } else {
+            alert('Failed to send message: ' + data.message);
+        }
+    })
+    .fail(function() {
+        alert('Failed to send message');
+    });
+}
+
+function applyFilters() {
+    // Implementation for filtering messages
+    console.log('Applying filters...');
+}
+
+function clearFilters() {
+    $('#roomFilter, #userFilter, #dateFilter, #typeFilter').val('');
+    loadMessages();
+}
+
+function viewMessage(messageId) {
+    // Implementation for viewing full message details
+    console.log('Viewing message:', messageId);
+}
+</script>
+{% endblock %}

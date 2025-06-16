@@ -1,0 +1,2583 @@
+{% extends "base.html" %}
+
+{% block title %}Commands - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-terminal me-2"></i>{{ t('commands_management') }}</h2>
+                <p class="text-muted mb-0">🎯 Manage commands with conditions: !(command_name) + conditions → Bot response</p>
+            </div>
+            <div>
+                <a href="/commands/documentation" class="btn btn-outline-info me-2">
+                    <i class="fas fa-book me-1"></i>{{ t('documentation') }}
+                </a>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCommandModal">
+                    <i class="fas fa-plus me-1"></i>{{ t('add_command') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Command Structure Info -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Command Structure</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-terminal fa-2x text-primary mb-2"></i>
+                            <h6>1. Command Name</h6>
+                            <p class="text-muted small">!(command_name)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-filter fa-2x text-warning mb-2"></i>
+                            <h6>2. Conditions</h6>
+                            <p class="text-muted small">Time, Users, Keywords, Cooldown</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-comment fa-2x text-success mb-2"></i>
+                            <h6>3. Response</h6>
+                            <p class="text-muted small">Bot reply message</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Commands Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-terminal fa-3x text-primary mb-3"></i>
+                <h4 id="total-commands">--</h4>
+                <p class="text-muted mb-0">Total Commands</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h4 id="active-commands">--</h4>
+                <p class="text-muted mb-0">Active Commands</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                <h4 id="command-usage">--</h4>
+                <p class="text-muted mb-0">Usage Today</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                <h4 id="last-used">--</h4>
+                <p class="text-muted mb-0">Last Used</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Commands Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Commands List</h5>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCommandModal">
+                    <i class="fas fa-plus me-2"></i>Add Command with Conditions
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="commandsTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Command</th>
+                                <th>Scope</th>
+                                <th>Conditions</th>
+                                <th>Response Preview</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commandsTableBody">
+                            <!-- Commands will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Command Modal -->
+<div class="modal fade" id="addCommandModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add Command with Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCommandForm">
+                    <!-- Step 1: Command Name -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-terminal me-2"></i>Step 1: Command Name</h6>
+                            <div class="input-group">
+                                <span class="input-group-text">!</span>
+                                <input type="text" class="form-control" id="commandName" placeholder="command_name" required>
+                            </div>
+                            <small class="text-muted">Enter command name without the ! prefix</small>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Conditions (Optional) -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-filter me-2"></i>Step 2: Conditions (Optional)</h6>
+                            <div class="accordion" id="conditionsAccordion">
+
+                                <!-- 📝 Message Content Conditions -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="messageConditionsHeader">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#messageConditions">
+                                            <i class="fas fa-comment-alt me-2"></i>📝 Message Content Rules
+                                        </button>
+                                    </h2>
+                                    <div id="messageConditions" class="accordion-collapse collapse" data-bs-parent="#conditionsAccordion">
+                                        <div class="accordion-body">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                <strong>Ví dụ:</strong> Command <code>!dinhchi 19216811</code> sẽ kiểm tra số <code>19216811</code>
+                                            </div>
+
+                                            <!-- Character Length Validation -->
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableCharacterLength">
+                                                        <label class="form-check-label" for="enableCharacterLength">
+                                                            <i class="fas fa-ruler me-1"></i><strong>Số ký tự bắt buộc</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div id="characterLengthInputs" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-4">
+                                                                <label for="characterLengthValue" class="form-label">Số ký tự</label>
+                                                                <input type="number" class="form-control" id="characterLengthValue" value="11" min="1" max="50">
+                                                                <small class="text-muted">Ví dụ: 11 (cho mã nhân viên 11 ký tự)</small>
+                                                            </div>
+                                                            <div class="col-md-8">
+                                                                <label for="characterLengthDescription" class="form-label">Mô tả</label>
+                                                                <input type="text" class="form-control" id="characterLengthDescription" placeholder="Mã nhân viên phải có đúng 11 ký tự">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Required Keywords -->
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableRequiredWords">
+                                                        <label class="form-check-label" for="enableRequiredWords">
+                                                            <i class="fas fa-check-circle me-1"></i><strong>Từ khóa bắt buộc</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div id="requiredWordsInputs" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-8">
+                                                                <label for="requiredWords" class="form-label">Từ khóa (cách nhau bằng dấu phẩy)</label>
+                                                                <input type="text" class="form-control" id="requiredWords" placeholder="urgent,important,O5A,O5B">
+                                                                <small class="text-muted">Message phải chứa TẤT CẢ các từ này</small>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label for="requiredWordsDescription" class="form-label">Mô tả</label>
+                                                                <input type="text" class="form-control" id="requiredWordsDescription" placeholder="Yêu cầu từ khóa quan trọng">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Forbidden Keywords -->
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableForbiddenWords">
+                                                        <label class="form-check-label" for="enableForbiddenWords">
+                                                            <i class="fas fa-ban me-1"></i><strong>Từ khóa cấm</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div id="forbiddenWordsInputs" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-8">
+                                                                <label for="forbiddenWords" class="form-label">Từ khóa cấm (cách nhau bằng dấu phẩy)</label>
+                                                                <input type="text" class="form-control" id="forbiddenWords" placeholder="spam,test,fake">
+                                                                <small class="text-muted">Message KHÔNG ĐƯỢC chứa bất kỳ từ nào trong danh sách</small>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label for="forbiddenWordsDescription" class="form-label">Mô tả</label>
+                                                                <input type="text" class="form-control" id="forbiddenWordsDescription" placeholder="Chặn từ khóa spam">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Command Arguments Pattern -->
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableArgumentPattern">
+                                                        <label class="form-check-label" for="enableArgumentPattern">
+                                                            <i class="fas fa-code me-1"></i><strong>Kiểm tra tham số command (Nâng cao)</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div id="argumentPatternInputs" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-8">
+                                                                <label for="argumentPatternRegex" class="form-label">Pattern (Regex)</label>
+                                                                <input type="text" class="form-control" id="argumentPatternRegex" placeholder="^(O5A|O5B).{8}$">
+                                                                <small class="text-muted">Regex pattern để kiểm tra tham số command</small>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label for="argumentPatternDescription" class="form-label">Mô tả</label>
+                                                                <input type="text" class="form-control" id="argumentPatternDescription" placeholder="Kiểm tra mã nhân viên">
+                                                            </div>
+                                                        </div>
+                                                        <div class="alert alert-warning mt-2">
+                                                            <strong>🔍 Patterns thường dùng:</strong><br>
+                                                            • <code>^O5A.{8}$</code> - Bắt đầu O5A, tổng 11 ký tự<br>
+                                                            • <code>^(O5A|O5B).{8}$</code> - Bắt đầu O5A hoặc O5B, tổng 11 ký tự<br>
+                                                            • <code>^[0-9]{11}$</code> - Chỉ số, đúng 11 ký tự<br>
+                                                            • <code>^[A-Z]{3}[0-9]{8}$</code> - 3 chữ cái + 8 số
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Time Conditions -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="timeConditionsHeader">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#timeConditions">
+                                            <i class="fas fa-clock me-2"></i>Time Conditions
+                                        </button>
+                                    </h2>
+                                    <div id="timeConditions" class="accordion-collapse collapse" data-bs-parent="#conditionsAccordion">
+                                        <div class="accordion-body">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="enableTimeRange">
+                                                <label class="form-check-label" for="enableTimeRange">
+                                                    Enable time range restriction
+                                                </label>
+                                            </div>
+                                            <div class="row" id="timeRangeInputs" style="display: none;">
+                                                <div class="col-md-6">
+                                                    <label for="startTime" class="form-label">Start Time</label>
+                                                    <input type="time" class="form-control" id="startTime" value="09:00">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="endTime" class="form-label">End Time</label>
+                                                    <input type="time" class="form-control" id="endTime" value="17:00">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <!-- Advanced Conditions -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="advancedConditionsHeader">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#advancedConditions">
+                                            <i class="fas fa-cogs me-2"></i>Advanced Conditions
+                                        </button>
+                                    </h2>
+                                    <div id="advancedConditions" class="accordion-collapse collapse" data-bs-parent="#conditionsAccordion">
+                                        <div class="accordion-body">
+                                            <!-- User ID Pattern -->
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableUserIdPattern">
+                                                        <label class="form-check-label" for="enableUserIdPattern">
+                                                            <i class="fas fa-user-check me-1"></i>User ID Pattern Validation
+                                                        </label>
+                                                    </div>
+                                                    <div id="userIdPatternInputs" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-8">
+                                                                <label for="userIdPatternRegex" class="form-label">Regex Pattern</label>
+                                                                <input type="text" class="form-control" id="userIdPatternRegex" placeholder="^(O5A|O5B).{8}$">
+                                                                <small class="text-muted">Example: ^(O5A|O5B).{8}$ for employee codes starting with O5A/O5B and 11 chars total</small>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label for="userIdPatternDescription" class="form-label">Description</label>
+                                                                <input type="text" class="form-control" id="userIdPatternDescription" placeholder="Employee code validation">
+                                                            </div>
+                                                        </div>
+                                                        <div class="alert alert-info mt-2">
+                                                            <strong>🔍 Common Patterns:</strong><br>
+                                                            • <code>^O5A.{8}$</code> - Starts with O5A, 11 chars total<br>
+                                                            • <code>^(O5A|O5B).{8}$</code> - Starts with O5A or O5B, 11 chars total<br>
+                                                            • <code>^[A-Z]{3}[0-9]{8}$</code> - 3 letters + 8 numbers<br>
+                                                            • <code>^admin$</code> - Exact match for "admin"
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableCooldown">
+                                                        <label class="form-check-label" for="enableCooldown">
+                                                            Cooldown period
+                                                        </label>
+                                                    </div>
+                                                    <div id="cooldownInputs" style="display: none;">
+                                                        <div class="input-group">
+                                                            <input type="number" class="form-control" id="cooldownSeconds" value="60" min="1">
+                                                            <span class="input-group-text">seconds</span>
+                                                        </div>
+                                                        <small class="text-muted">Minimum time between command uses</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="enableDayOfWeek">
+                                                        <label class="form-check-label" for="enableDayOfWeek">
+                                                            Day of week restriction
+                                                        </label>
+                                                    </div>
+                                                    <div id="dayOfWeekInputs" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="monday" value="1">
+                                                                    <label class="form-check-label" for="monday">Mon</label>
+                                                                </div>
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="tuesday" value="2">
+                                                                    <label class="form-check-label" for="tuesday">Tue</label>
+                                                                </div>
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="wednesday" value="3">
+                                                                    <label class="form-check-label" for="wednesday">Wed</label>
+                                                                </div>
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="thursday" value="4">
+                                                                    <label class="form-check-label" for="thursday">Thu</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="friday" value="5">
+                                                                    <label class="form-check-label" for="friday">Fri</label>
+                                                                </div>
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="saturday" value="6">
+                                                                    <label class="form-check-label" for="saturday">Sat</label>
+                                                                </div>
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="checkbox" id="sunday" value="7">
+                                                                    <label class="form-check-label" for="sunday">Sun</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Response -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-comment me-2"></i>Step 3: Bot Response</h6>
+                            <textarea class="form-control" id="commandResponse" rows="4" placeholder="Enter bot response message..." required></textarea>
+                            <small class="text-muted">You can use variables: {user_id}, {room_id}, {current_time}</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCommandWithConditions()">
+                    <i class="fas fa-save me-2"></i>Save Command
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Command Modal -->
+<div class="modal fade" id="editCommandModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Command</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCommandForm">
+                    <input type="hidden" id="editCommandOriginalName">
+                    <div class="mb-3">
+                        <label for="editCommandName" class="form-label">Command Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text">!</span>
+                            <input type="text" class="form-control" id="editCommandName" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCommandDescription" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="editCommandDescription" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCommandResponse" class="form-label">Response</label>
+                        <textarea class="form-control" id="editCommandResponse" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editAdminOnly">
+                            <label class="form-check-label" for="editAdminOnly">
+                                Admin Only Command
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateCommand()">Update Command</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Response Modal -->
+<div class="modal fade" id="editResponseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-comment-edit me-2"></i>Edit Command Response</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editResponseForm">
+                    <input type="hidden" id="editResponseCommandName">
+                    <div class="mb-3">
+                        <label for="editResponseScope" class="form-label">
+                            <i class="fas fa-layer-group me-1 text-primary"></i>Scope
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
+                            <select class="form-select" id="editResponseScope" required>
+                                <option value="user">👤 User - Only for specific user</option>
+                                <option value="room">🏠 Room - For all users in room</option>
+                                <option value="global">🌍 Global - For everyone</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="roomIdField">
+                        <label for="editResponseRoomId" class="form-label">
+                            <i class="fas fa-home me-1 text-success"></i>Room
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-door-open"></i></span>
+                            <select class="form-select" id="editResponseRoomId">
+                                <option value="">🔍 Select Room</option>
+                            </select>
+                            <button class="btn btn-outline-secondary" type="button" onclick="loadRoomsForModal()" title="Refresh Rooms">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="userIdField">
+                        <label for="editResponseUserId" class="form-label">
+                            <i class="fas fa-user me-1 text-info"></i>User
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user-circle"></i></span>
+                            <select class="form-select" id="editResponseUserId">
+                                <option value="">👥 Select User</option>
+                            </select>
+                            <button class="btn btn-outline-secondary" type="button" onclick="refreshUsers()" title="Refresh Users">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editResponseText" class="form-label">
+                            <i class="fas fa-comment-dots me-1 text-warning"></i>Custom Response
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-edit"></i></span>
+                            <textarea class="form-control" id="editResponseText" rows="4" required
+                                      placeholder="💬 Enter custom response..."></textarea>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            Available variables: {user_id}, {room_id}, {current_time}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCustomResponse()">
+                    <i class="fas fa-save me-2"></i>Save Response
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Commands Management Modal -->
+<div class="modal fade" id="userCommandsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-users-cog me-2"></i>{{ t('user_commands_management') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Quản lý Command cho Users:</strong> Chọn command và áp dụng cho nhiều users cụ thể trong các rooms khác nhau.
+                </div>
+
+                <div class="row">
+                    <!-- Left Panel: Command & Room Selection -->
+                    <div class="col-md-5">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-cog me-2"></i>Command & Room Selection</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Command Selection -->
+                                <div class="mb-3">
+                                    <label for="selectedCommandName" class="form-label">
+                                        <i class="fas fa-terminal me-1"></i>Command Name
+                                    </label>
+                                    <input type="text" class="form-control" id="selectedCommandName" readonly>
+                                    <small class="text-muted">Command được chọn từ actions table</small>
+                                </div>
+
+                                <!-- Room Selection -->
+                                <div class="mb-3">
+                                    <label for="userCmdRoomSelect" class="form-label">
+                                        <i class="fas fa-home me-1"></i>{{ t('select_room') }}
+                                    </label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="userCmdRoomSelect" onchange="loadUsersForUserCommandsRoom()">
+                                            <option value="">🏠 Select Room...</option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="loadRoomsForUserCommands()" title="Refresh Rooms">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Users in Selected Room -->
+                                <div class="mb-3" id="usersInRoomSection" style="display: none;">
+                                    <label class="form-label">
+                                        <i class="fas fa-users me-1"></i>{{ t('select_users') }}
+                                    </label>
+                                    <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                        <div id="usersCheckboxList">
+                                            <p class="text-muted mb-0">Select room first...</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllUsers()">
+                                            <i class="fas fa-check-double me-1"></i>{{ t('select_all') }}
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllUsers()">
+                                            <i class="fas fa-times me-1"></i>{{ t('deselect_all') }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Apply Command Button -->
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-success" onclick="applyCommandToSelectedUsers()">
+                                        <i class="fas fa-user-plus me-2"></i>{{ t('apply_command') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Current Assignments -->
+                    <div class="col-md-7">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Current Command Assignments</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshCommandAssignments()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="commandAssignmentsList">
+                                    <p class="text-muted">Select a command to view assignments...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveCommand() {
+    const name = $('#commandName').val();
+    const description = $('#commandDescription').val();
+    const response = $('#commandResponse').val();
+    const adminOnly = $('#adminOnly').is(':checked');
+    
+    $.ajax({
+        url: '/api/commands',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            description: description,
+            response: response,
+            admin_only: adminOnly
+        }),
+        success: function(data) {
+            $('#addCommandModal').modal('hide');
+            location.reload();
+        },
+        error: function(xhr) {
+            alert('Error: ' + xhr.responseJSON.error);
+        }
+    });
+}
+
+function editCommand(commandName) {
+    // Get command data from API
+    $.ajax({
+        url: '/api/commands',
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success') {
+                const command = data.commands.find(cmd => cmd.name === commandName);
+                if (command) {
+                    // Populate edit modal
+                    $('#editCommandOriginalName').val(commandName);
+                    $('#editCommandName').val(command.name);
+                    $('#editCommandDescription').val(command.description);
+                    $('#editCommandResponse').val(command.response);
+                    $('#editAdminOnly').prop('checked', command.admin_only);
+
+                    // Show edit modal
+                    $('#editCommandModal').modal('show');
+                }
+            }
+        },
+        error: function(xhr) {
+            alert('Error loading command data: ' + (xhr.responseJSON?.message || 'Unknown error'));
+        }
+    });
+}
+
+function updateCommand() {
+    const originalName = $('#editCommandOriginalName').val();
+    const name = $('#editCommandName').val();
+    const description = $('#editCommandDescription').val();
+    const response = $('#editCommandResponse').val();
+    const adminOnly = $('#editAdminOnly').is(':checked');
+
+    $.ajax({
+        url: '/api/commands/' + originalName,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            description: description,
+            response: response,
+            admin_only: adminOnly
+        }),
+        success: function(data) {
+            $('#editCommandModal').modal('hide');
+            location.reload();
+        },
+        error: function(xhr) {
+            alert('Error updating command: ' + (xhr.responseJSON?.message || 'Unknown error'));
+        }
+    });
+}
+
+function deleteCommand(commandName) {
+    if (confirm('Are you sure you want to delete command "' + commandName + '"?')) {
+        $.ajax({
+            url: '/api/commands/' + commandName,
+            method: 'DELETE',
+            success: function(data) {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Error: ' + xhr.responseJSON.error);
+            }
+        });
+    }
+}
+
+function editResponse(commandName) {
+    $('#editResponseCommandName').val(commandName);
+    loadRoomsForModal();
+    $('#editResponseModal').modal('show');
+}
+
+function saveCustomResponse() {
+    const commandName = $('#editResponseCommandName').val();
+    const scope = $('#editResponseScope').val();
+    const userId = $('#editResponseUserId').val();
+    const roomId = $('#editResponseRoomId').val();
+    const response = $('#editResponseText').val();
+
+    if (!response) {
+        alert('Please enter a response');
+        return;
+    }
+
+    // Validation based on scope
+    if (scope === 'user' && (!userId || !roomId)) {
+        alert('Please select both room and user for user-specific response');
+        return;
+    }
+
+    if (scope === 'room' && !roomId) {
+        alert('Please select a room for room-specific response');
+        return;
+    }
+
+    const data = {
+        response: response,
+        scope: scope
+    };
+
+    if (scope === 'user' && userId) {
+        data.user_id = userId;
+    }
+    if ((scope === 'room' || scope === 'user') && roomId) {
+        data.room_id = roomId;
+    }
+
+    $.ajax({
+        url: '/api/user-commands/' + commandName + '/response',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            if (response.status === 'success') {
+                $('#editResponseModal').modal('hide');
+                alert('Custom response saved successfully!');
+                // Reset form
+                $('#editResponseForm')[0].reset();
+                $('#editResponseUserId').html('<option value="">Select User</option>');
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error'));
+        }
+    });
+}
+
+// 👥 ENHANCED USER COMMANDS MANAGEMENT
+function manageUserCommands(commandName) {
+    // Set the command name in the modal
+    $('#userCommandsModal .modal-title').html(`<i class="fas fa-users-cog me-2"></i>User Commands Management - !${commandName}`);
+    $('#selectedCommandName').val(commandName);
+
+    // Load rooms and show modal
+    loadRoomsForUserCommands();
+    $('#userCommandsModal').modal('show');
+
+    // Reset selections
+    $('#userCmdRoomSelect').val('');
+    $('#usersInRoomSection').hide();
+    $('#usersCheckboxList').html('<p class="text-muted mb-0">Select room first...</p>');
+
+    // Load current assignments for this command
+    loadCommandAssignments(commandName);
+}
+
+function addUserCommand() {
+    const scope = $('#userCmdScope').val();
+    const userId = $('#userCmdUserId').val();
+    const roomId = $('#userCmdRoomId').val();
+    const commandName = $('#userCmdName').val();
+    const response = $('#userCmdResponse').val();
+
+    if (!commandName || !response) {
+        alert('Please fill in command name and response');
+        return;
+    }
+
+    if (!roomId) {
+        alert('Please select a room');
+        return;
+    }
+
+    if (scope === 'user' && !userId) {
+        alert('Please select a user for user-specific command');
+        return;
+    }
+
+    const data = {
+        scope: scope,
+        command_name: commandName,
+        response: response,
+        description: `User command (${scope})`,
+        room_id: roomId
+    };
+
+    if (scope === 'user' && userId) {
+        data.user_id = userId;
+    }
+
+    $.ajax({
+        url: '/api/user-commands',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            if (response.status === 'success') {
+                alert('User command created successfully!');
+                $('#addUserCommandForm')[0].reset();
+                $('#userCmdUserId').html('<option value="">Select User</option>');
+                loadUserCommands();
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error'));
+        }
+    });
+}
+
+function loadUserCommands() {
+    const userId = $('#userCmdUserId').val();
+    const roomId = $('#userCmdRoomId').val();
+
+    if (!userId || !roomId) {
+        $('#userCommandsList').html('<p class="text-muted">Enter User ID and Room ID to load commands</p>');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/user-commands',
+        method: 'GET',
+        data: {
+            user_id: userId,
+            room_id: roomId
+        },
+        success: function(response) {
+            if (response.status === 'success') {
+                const commands = response.commands;
+                let html = '';
+
+                if (Object.keys(commands).length === 0) {
+                    html = '<p class="text-muted">No user commands found</p>';
+                } else {
+                    html = '<div class="list-group">';
+                    for (const [cmdName, cmdData] of Object.entries(commands)) {
+                        html += `
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">!${cmdName}</h6>
+                                    <small class="text-muted">${cmdData.scope}</small>
+                                </div>
+                                <p class="mb-1">${cmdData.response}</p>
+                                <small>${cmdData.description}</small>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                }
+
+                $('#userCommandsList').html(html);
+            } else {
+                $('#userCommandsList').html('<p class="text-danger">Error loading commands</p>');
+            }
+        },
+        error: function(xhr) {
+            $('#userCommandsList').html('<p class="text-danger">Error loading commands</p>');
+        }
+    });
+}
+
+function loadUserCommandsForCommand(commandName, roomId, userId) {
+    $.ajax({
+        url: '/api/user-commands',
+        method: 'GET',
+        data: {
+            command_name: commandName,
+            room_id: roomId,
+            user_id: userId
+        },
+        success: function(response) {
+            if (response.status === 'success') {
+                const commands = response.commands;
+                let html = '';
+
+                if (Object.keys(commands).length === 0) {
+                    html = `<p class="text-muted">No user commands found for !${commandName}</p>`;
+                } else {
+                    html = '<div class="list-group">';
+                    for (const [cmdName, cmdData] of Object.entries(commands)) {
+                        if (cmdName === commandName) {
+                            html += `
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">!${cmdName}</h6>
+                                        <small class="text-muted">${cmdData.scope || 'user'}</small>
+                                    </div>
+                                    <p class="mb-1">${cmdData.response || cmdData.custom_response || 'No response set'}</p>
+                                    <small>Room: ${roomId} | User: ${userId}</small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUserCommand('${cmdName}', '${roomId}', '${userId}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    html += '</div>';
+                }
+
+                $('#userCommandsList').html(html);
+            } else {
+                $('#userCommandsList').html(`<p class="text-danger">Error loading commands for !${commandName}</p>`);
+            }
+        },
+        error: function(xhr) {
+            $('#userCommandsList').html(`<p class="text-danger">Error loading commands for !${commandName}</p>`);
+        }
+    });
+}
+
+function deleteUserCommand(commandName, roomId, userId) {
+    if (confirm(`Are you sure you want to delete user command !${commandName} for user ${userId} in room ${roomId}?`)) {
+        console.log(`🗑️ Deleting command: ${commandName}, user: ${userId}, room: ${roomId}`);
+
+        $.ajax({
+            url: '/api/user-commands/' + commandName,
+            method: 'DELETE',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                room_id: roomId,
+                user_id: userId
+            }),
+            success: function(response) {
+                console.log('✅ Delete response:', response);
+                if (response.status === 'success') {
+                    alert('User command deleted successfully!');
+                    loadCommandAssignments(commandName);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('❌ Delete error:', xhr.responseText);
+                alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error'));
+            }
+        });
+    }
+}
+
+// 🏠 LOAD USERS FOR SELECTED ROOM IN USER COMMANDS
+function loadUsersForUserCommandsRoom() {
+    const roomId = $('#userCmdRoomSelect').val();
+
+    if (!roomId) {
+        $('#usersInRoomSection').hide();
+        $('#usersCheckboxList').html('<p class="text-muted mb-0">Select room first...</p>');
+        return;
+    }
+
+    // Show loading
+    $('#usersCheckboxList').html('<p class="text-muted mb-0"><i class="fas fa-spinner fa-spin me-1"></i>Loading users...</p>');
+    $('#usersInRoomSection').show();
+
+    $.ajax({
+        url: `/api/rooms/${roomId}/users`,
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success' && data.users) {
+                let html = '';
+
+                if (data.users.length === 0) {
+                    html = '<p class="text-muted mb-0">No users found in this room</p>';
+                } else {
+                    data.users.forEach(user => {
+                        const adminBadge = user.is_admin ? '<span class="badge bg-warning ms-1">Admin</span>' : '';
+                        const messageCount = user.message_count || 0;
+
+                        html += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="${user.user_id}" id="user_${user.user_id}">
+                                <label class="form-check-label d-flex justify-content-between align-items-center" for="user_${user.user_id}">
+                                    <span>
+                                        <strong>${user.display_name || user.user_id}</strong>
+                                        ${adminBadge}
+                                    </span>
+                                    <small class="text-muted">${messageCount} messages</small>
+                                </label>
+                            </div>
+                        `;
+                    });
+                }
+
+                $('#usersCheckboxList').html(html);
+            } else {
+                $('#usersCheckboxList').html('<p class="text-danger mb-0">Error loading users</p>');
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading users:', xhr);
+            $('#usersCheckboxList').html('<p class="text-danger mb-0">Error loading users</p>');
+        }
+    });
+}
+
+// ✅ SELECT ALL USERS
+function selectAllUsers() {
+    const checkboxes = $('#usersCheckboxList input[type="checkbox"]');
+    console.log('🔍 selectAllUsers() called');
+    console.log('📊 Found checkboxes:', checkboxes.length);
+
+    checkboxes.prop('checked', true);
+
+    const checkedCount = $('#usersCheckboxList input[type="checkbox"]:checked').length;
+    console.log('✅ Checked count after selectAll:', checkedCount);
+}
+
+// ❌ DESELECT ALL USERS
+function deselectAllUsers() {
+    $('#usersCheckboxList input[type="checkbox"]').prop('checked', false);
+}
+
+// 🎯 APPLY COMMAND TO SELECTED USERS
+function applyCommandToSelectedUsers() {
+    console.log('🎯 applyCommandToSelectedUsers() called');
+
+    const commandName = $('#selectedCommandName').val();
+    const roomId = $('#userCmdRoomSelect').val();
+    const selectedUsers = [];
+
+    console.log('📝 Command name:', commandName);
+    console.log('🏠 Room ID:', roomId);
+
+    // Get selected users
+    const allCheckboxes = $('#usersCheckboxList input[type="checkbox"]');
+    const checkedCheckboxes = $('#usersCheckboxList input[type="checkbox"]:checked');
+
+    console.log('📊 Total checkboxes found:', allCheckboxes.length);
+    console.log('📊 Checked checkboxes found:', checkedCheckboxes.length);
+
+    checkedCheckboxes.each(function() {
+        const userId = $(this).val();
+        console.log('✅ Adding selected user:', userId);
+        selectedUsers.push(userId);
+    });
+
+    console.log('👥 Final selected users array:', selectedUsers);
+
+    if (!commandName) {
+        console.error('❌ No command selected');
+        alert('No command selected');
+        return;
+    }
+
+    if (!roomId) {
+        console.error('❌ No room selected');
+        alert('Please select a room');
+        return;
+    }
+
+    if (selectedUsers.length === 0) {
+        console.error('❌ No users selected');
+        alert('Please select at least one user');
+        return;
+    }
+
+    // Confirm action
+    if (!confirm(`Apply command !${commandName} to ${selectedUsers.length} selected users in this room?`)) {
+        console.log('❌ User cancelled action');
+        return;
+    }
+
+    console.log('✅ Starting to apply command to users...');
+
+    // 🚀 NEW: Use BATCH processing to prevent race conditions
+    const batchData = {
+        command_name: commandName,
+        user_ids: selectedUsers,  // Send all user IDs in one request
+        room_id: roomId,
+        scope: 'user',
+        response: `Command !${commandName} enabled for user`,
+        description: `Batch command assignment for ${selectedUsers.length} users`
+    };
+
+    console.log(`🚀 Sending BATCH request for ${selectedUsers.length} users:`, batchData);
+
+    // Show progress indicator
+    const progressHtml = `
+        <div class="alert alert-info">
+            <i class="fas fa-cog fa-spin me-2"></i>
+            Processing ${selectedUsers.length} users... Please wait.
+        </div>
+    `;
+    $('#commandAssignmentsList').html(progressHtml);
+
+    $.ajax({
+        url: '/api/user-commands',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(batchData),
+        success: function(response) {
+            console.log(`✅ BATCH request SUCCESS:`, response);
+
+            if (response.status === 'success') {
+                showApplyResults(selectedUsers.length, 0, commandName);
+                console.log('🎉 Batch processing completed successfully!');
+            } else {
+                showApplyResults(0, selectedUsers.length, commandName);
+                console.error('❌ Batch processing failed:', response.message);
+            }
+
+            // Reload assignments
+            loadCommandAssignments(commandName);
+        },
+        error: function(xhr) {
+            console.error(`❌ BATCH request ERROR:`, xhr.responseText);
+            showApplyResults(0, selectedUsers.length, commandName);
+
+            // Show error in assignments area
+            $('#commandAssignmentsList').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Batch processing failed. Please try again.
+                </div>
+            `);
+        }
+    });
+}
+
+// 📊 SHOW APPLY RESULTS
+function showApplyResults(successCount, errorCount, commandName) {
+    let message = `Command !${commandName} application results:\n`;
+    message += `✅ Success: ${successCount}\n`;
+    message += `❌ Errors: ${errorCount}`;
+
+    if (errorCount > 0) {
+        message += `\n\nSome users may already have this command assigned.`;
+    }
+
+    alert(message);
+}
+
+// 📋 LOAD COMMAND ASSIGNMENTS
+function loadCommandAssignments(commandName) {
+    if (!commandName) {
+        $('#commandAssignmentsList').html('<p class="text-muted">Select a command to view assignments...</p>');
+        return;
+    }
+
+    $('#commandAssignmentsList').html('<p class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Loading assignments...</p>');
+
+    $.ajax({
+        url: '/api/user-commands',
+        method: 'GET',
+        data: {
+            command_name: commandName
+        },
+        success: function(response) {
+            console.log('✅ Assignments loaded:', response);
+            if (response.status === 'success') {
+                displayCommandAssignments(response.assignments || [], commandName);
+            } else {
+                console.error('❌ API error:', response.message);
+                $('#commandAssignmentsList').html('<p class="text-danger">Error loading assignments: ' + response.message + '</p>');
+            }
+        },
+        error: function(xhr) {
+            console.error('❌ AJAX error loading assignments:', xhr.status, xhr.responseText);
+
+            if (xhr.status === 302 || xhr.status === 401) {
+                $('#commandAssignmentsList').html('<p class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Session expired. Please refresh the page and login again.</p>');
+            } else {
+                $('#commandAssignmentsList').html('<p class="text-danger">Error loading assignments (Status: ' + xhr.status + ')</p>');
+            }
+        }
+    });
+}
+
+// 🎨 DISPLAY COMMAND ASSIGNMENTS
+function displayCommandAssignments(assignments, commandName) {
+    if (!assignments || assignments.length === 0) {
+        $('#commandAssignmentsList').html(`
+            <div class="text-center py-4">
+                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No users assigned to command !${commandName}</p>
+            </div>
+        `);
+        return;
+    }
+
+    // Group by room
+    const roomGroups = {};
+    assignments.forEach(assignment => {
+        const roomId = assignment.room_id || 'unknown';
+        if (!roomGroups[roomId]) {
+            roomGroups[roomId] = [];
+        }
+        roomGroups[roomId].push(assignment);
+    });
+
+    let html = '';
+    Object.keys(roomGroups).forEach(roomId => {
+        const users = roomGroups[roomId];
+        html += `
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-home me-1"></i>Room: ${roomId}
+                        <span class="badge bg-primary ms-2">${users.length} users</span>
+                    </h6>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeCommandFromRoom('${commandName}', '${roomId}')">
+                        <i class="fas fa-trash me-1"></i>Remove All
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+        `;
+
+        users.forEach(user => {
+            const displayName = user.display_name || user.user_id;
+            const userInfo = user.display_name ? `${displayName} (${user.user_id})` : user.user_id;
+
+            html += `
+                <div class="col-md-6 mb-2">
+                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                        <span>
+                            <i class="fas fa-user me-1"></i>
+                            <strong>${displayName}</strong>
+                            ${user.display_name ? `<small class="text-muted d-block">ID: ${user.user_id}</small>` : ''}
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeCommandFromUser('${commandName}', '${roomId}', '${user.user_id}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    $('#commandAssignmentsList').html(html);
+}
+
+// 🗑️ REMOVE COMMAND FROM USER
+function removeCommandFromUser(commandName, roomId, userId) {
+    if (confirm(`Remove command !${commandName} from user ${userId} in room ${roomId}?`)) {
+        deleteUserCommand(commandName, roomId, userId);
+    }
+}
+
+// 🗑️ REMOVE COMMAND FROM ALL USERS IN ROOM
+function removeCommandFromRoom(commandName, roomId) {
+    if (confirm(`Remove command !${commandName} from ALL users in room ${roomId}?`)) {
+        console.log(`🗑️ Removing command ${commandName} from all users in room ${roomId}`);
+
+        $.ajax({
+            url: `/api/user-commands/${commandName}/room/${roomId}`,
+            method: 'DELETE',
+            success: function(response) {
+                console.log('✅ Remove all response:', response);
+                if (response.status === 'success') {
+                    alert('Command removed from all users in room successfully!');
+                    loadCommandAssignments(commandName);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('❌ Remove all error:', xhr.responseText);
+                alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error'));
+            }
+        });
+    }
+}
+
+// 🔄 REFRESH COMMAND ASSIGNMENTS
+function refreshCommandAssignments() {
+    const commandName = $('#selectedCommandName').val();
+    loadCommandAssignments(commandName);
+}
+
+// Load commands function
+function loadCommands() {
+    $.ajax({
+        url: '/api/commands',
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success') {
+                const tbody = $('#commandsTableBody');
+                tbody.empty();
+
+                data.commands.forEach(function(cmd) {
+                    const adminBadge = cmd.admin_only ?
+                        '<span class="badge bg-warning">Admin Only</span>' :
+                        '<span class="badge bg-success">Public</span>';
+
+                    const typeBadge = cmd.type === 'system' ?
+                        '<span class="badge bg-info">System</span>' :
+                        '<span class="badge bg-primary">Web</span>';
+
+                    const statusBadge = cmd.enabled ?
+                        '<span class="badge bg-success">Enabled</span>' :
+                        '<span class="badge bg-secondary">Disabled</span>';
+
+                    // Determine command type and capabilities
+                    const isSystemCmd = cmd.type === 'system';
+                    const hasConditions = cmd.conditions && Object.keys(cmd.conditions).length > 0;
+                    const isUserConditionsCmd = cmd.type === 'user_conditions';
+                    const isWebCmd = cmd.type === 'web';
+
+                    // 🎯 PRIMARY FEATURE: Edit Command with Conditions
+                    const editConditionsBtn = !isSystemCmd ?
+                        `<button class="btn btn-sm btn-primary" onclick="editCommandWithConditions('${cmd.id || cmd.name}')" title="Edit Command with Conditions"><i class="fas fa-magic"></i></button>` :
+                        '<button class="btn btn-sm btn-outline-secondary" disabled title="System commands cannot be edited"><i class="fas fa-lock"></i></button>';
+
+                    // ✅ ADDITIONAL FEATURES:
+                    // Test Conditions - for ALL commands (with or without conditions)
+                    const testBtn = !isSystemCmd ?
+                        `<button class="btn btn-sm btn-outline-warning" onclick="testCommandConditions('${cmd.id || cmd.name}')" title="Test Command"><i class="fas fa-flask"></i></button>` :
+                        '';
+
+                    // User Commands - manage per-user commands
+                    const userCmdBtn = !isSystemCmd ?
+                        `<button class="btn btn-sm btn-outline-success" onclick="manageUserCommands('${cmd.name}')" title="User Commands Management"><i class="fas fa-users-cog"></i></button>` :
+                        '';
+
+                    // Delete Command - remove commands
+                    const deleteBtn = !isSystemCmd ?
+                        `<button class="btn btn-sm btn-outline-danger" onclick="deleteCommand('${cmd.id || cmd.name}')" title="Delete Command"><i class="fas fa-trash"></i></button>` :
+                        '';
+
+                    // Format conditions for display
+                    const conditionsText = formatConditions(cmd.conditions || {});
+                    const responsePreview = (cmd.response || cmd.description || '').substring(0, 50) +
+                                          (cmd.response && cmd.response.length > 50 ? '...' : '');
+                    const scopeBadge = getScopeBadge(cmd.scope || 'global');
+
+                    const row = `
+                        <tr>
+                            <td><code>!${cmd.name}</code></td>
+                            <td>${scopeBadge}</td>
+                            <td><small>${conditionsText}</small></td>
+                            <td><small>${responsePreview}</small></td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    ${editConditionsBtn}
+                                    ${testBtn}
+                                    ${userCmdBtn}
+                                    ${deleteBtn}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+
+                // Initialize tooltips
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            }
+        },
+        error: function() {
+            alert('Failed to load commands');
+        }
+    });
+}
+
+// Event handlers
+$(document).ready(function() {
+    // Load commands on page load
+    loadCommands();
+    // Show/hide fields based on scope selection
+    $('#editResponseScope').change(function() {
+        const scope = $(this).val();
+        if (scope === 'user') {
+            $('#userIdField').show();
+            $('#roomIdField').show();
+        } else if (scope === 'room') {
+            $('#userIdField').hide();
+            $('#roomIdField').show();
+        } else {
+            $('#userIdField').hide();
+            $('#roomIdField').hide();
+        }
+    });
+
+    // Load user commands when user/room changes
+    $('#userCmdUserId, #userCmdRoomId').on('input', function() {
+        loadUserCommands();
+    });
+
+    // Show/hide user ID field based on scope
+    $('#userCmdScope').change(function() {
+        if ($(this).val() === 'user') {
+            $('#userCmdUserIdField').show();
+        } else {
+            $('#userCmdUserIdField').hide();
+        }
+    });
+
+    // Load users when room changes
+    $('#editResponseRoomId, #userCmdRoomId').change(function() {
+        const roomId = $(this).val();
+        const isEditResponse = $(this).attr('id') === 'editResponseRoomId';
+
+        if (roomId) {
+            loadUsersForRoom(roomId, isEditResponse);
+
+            // Auto-load user commands if this is user commands modal
+            if (!isEditResponse) {
+                const commandName = $('#userCmdName').val();
+                if (commandName) {
+                    setTimeout(() => {
+                        const userId = $('#userCmdUserId').val();
+                        if (userId) {
+                            loadUserCommandsForCommand(commandName, roomId, userId);
+                        }
+                    }, 1000);
+                }
+            }
+        } else {
+            // Clear users dropdown
+            const userSelect = isEditResponse ? '#editResponseUserId' : '#userCmdUserId';
+            $(userSelect).html('<option value="">👤 Select User</option>');
+        }
+    });
+
+    // Auto-load user commands when user changes
+    $('#userCmdUserId').change(function() {
+        const userId = $(this).val();
+        const roomId = $('#userCmdRoomId').val();
+        const commandName = $('#userCmdName').val();
+
+        if (userId && roomId && commandName) {
+            loadUserCommandsForCommand(commandName, roomId, userId);
+        }
+    });
+
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+
+// Load rooms for modals
+function loadRoomsForModal() {
+    $.ajax({
+        url: '/api/rooms',
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success') {
+                const $roomSelect = $('#editResponseRoomId');
+                $roomSelect.html('<option value="">Select Room</option>');
+
+                data.rooms.forEach(function(room) {
+                    $roomSelect.append(`<option value="${room.room_id}">${room.name || room.room_id}</option>`);
+                });
+            }
+        },
+        error: function() {
+            console.error('Failed to load rooms');
+        }
+    });
+}
+
+function loadRoomsForUserCommands() {
+    console.log('🏠 Loading rooms for User Commands Management (fast mode)...');
+    $.ajax({
+        url: '/api/rooms?fast=true',  // Use fast mode to skip bot status checks
+        method: 'GET',
+        success: function(data) {
+            console.log('✅ Rooms API response (fast):', data);
+            if (data.status === 'success') {
+                const $roomSelect = $('#userCmdRoomSelect');
+                $roomSelect.html('<option value="">🏠 Select Room...</option>');
+
+                data.rooms.forEach(function(room) {
+                    const roomName = room.name || room.room_id;
+                    $roomSelect.append(`<option value="${room.room_id}">${roomName}</option>`);
+                });
+
+                console.log(`⚡ Fast loaded ${data.rooms.length} rooms for User Commands`);
+            } else {
+                console.error('❌ API returned error:', data.message);
+                $('#userCmdRoomSelect').html('<option value="">❌ Error loading rooms</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Failed to load rooms for User Commands:', error);
+            $('#userCmdRoomSelect').html('<option value="">❌ Failed to load rooms</option>');
+        }
+    });
+}
+
+function refreshUsersForUserCommands() {
+    const roomId = $('#userCmdRoomSelect').val();
+    if (roomId) {
+        loadUsersForRoom(roomId, false);
+    } else {
+        alert('Please select a room first');
+    }
+}
+
+function loadUsersForRoom(roomId, isEditResponse = false) {
+    console.log('🔍 Loading users for room:', roomId);
+
+    $.ajax({
+        url: `/api/rooms/${roomId}/users`,
+        method: 'GET',
+        success: function(data) {
+            console.log('✅ Users API response:', data);
+
+            if (data.status === 'success') {
+                const userSelect = isEditResponse ? '#editResponseUserId' : '#userCmdUserId';
+                const $userSelect = $(userSelect);
+
+                $userSelect.html('<option value="">👥 Select User from this Room</option>');
+
+                if (data.users && data.users.length > 0) {
+                    data.users.forEach(function(user) {
+                        const displayName = user.display_name || user.user_id;
+                        const badge = user.is_admin ? ' 👑' : '';
+                        const messageCount = user.message_count || 0;
+                        const lastActive = user.last_active || 'Never active';
+
+                        $userSelect.append(`<option value="${user.user_id}" title="Messages: ${messageCount}, Last: ${lastActive}">${displayName}${badge}</option>`);
+                    });
+
+                    // 📊 Display user information
+                    if (!isEditResponse) {
+                        $('#userListDisplay').show();
+                        $('#userCountText').text(`${data.users.length} users in this room`);
+                    }
+
+                    console.log(`✅ Loaded ${data.users.length} users for room ${roomId}`);
+                } else {
+                    $userSelect.append('<option value="" disabled>❌ No users found in this room</option>');
+                    if (!isEditResponse) {
+                        $('#userListDisplay').show();
+                        $('#userCountText').text('0 users found');
+                    }
+                    console.log('⚠️ No users found for room:', roomId);
+                }
+            } else {
+                console.error('❌ API returned error:', data.message);
+                const userSelect = isEditResponse ? '#editResponseUserId' : '#userCmdUserId';
+                $(userSelect).html('<option value="" disabled>❌ Error loading users</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Failed to load users for room:', roomId, 'Error:', error);
+            console.error('Response:', xhr.responseText);
+
+            const userSelect = isEditResponse ? '#editResponseUserId' : '#userCmdUserId';
+            $(userSelect).html('<option value="" disabled">❌ Failed to load users</option>');
+
+            if (!isEditResponse) {
+                $('#userListDisplay').show();
+                $('#userCountText').text('Error loading users');
+            }
+        }
+    });
+}
+
+// 🎯 NEW FEATURE: Auto load users when selecting room
+function loadUsersForSelectedRoom() {
+    const roomId = $('#userCmdRoomSelect').val();
+    console.log('🏠 Room selected:', roomId);
+
+    if (roomId) {
+        // Show loading state
+        $('#usersCheckboxList').html('<p class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Loading users...</p>');
+        $('#userListDisplay').show();
+
+        // Load users for selected room and display as checkboxes
+        $.ajax({
+            url: `/api/rooms/${roomId}/users`,
+            method: 'GET',
+            success: function(data) {
+                console.log('✅ Users loaded for checkboxes:', data);
+
+                if (data.status === 'success' && data.users && data.users.length > 0) {
+                    let checkboxHtml = '';
+
+                    data.users.forEach(function(user) {
+                        const displayName = user.display_name || user.user_id;
+                        const badge = user.is_admin ? ' 👑' : '';
+                        const messageCount = user.message_count || 0;
+                        const lastActive = user.last_active || 'Never';
+
+                        checkboxHtml += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="${user.user_id}" id="user_${user.user_id}">
+                                <label class="form-check-label" for="user_${user.user_id}">
+                                    <strong>${displayName}${badge}</strong>
+                                    <small class="text-muted d-block">ID: ${user.user_id} | Messages: ${messageCount} | Last: ${lastActive}</small>
+                                </label>
+                            </div>
+                        `;
+                    });
+
+                    $('#usersCheckboxList').html(checkboxHtml);
+                    $('#userCountText').text(`${data.users.length} users in this room`);
+                    console.log(`✅ Displayed ${data.users.length} users as checkboxes`);
+                } else {
+                    $('#usersCheckboxList').html('<p class="text-muted">❌ No users found in this room</p>');
+                    $('#userCountText').text('0 users found');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Failed to load users for checkboxes:', error);
+                $('#usersCheckboxList').html('<p class="text-danger">❌ Error loading users</p>');
+                $('#userCountText').text('Error loading users');
+            }
+        });
+    } else {
+        // Reset when no room selected
+        $('#usersCheckboxList').html('<p class="text-muted">👤 Please select a room first...</p>');
+        $('#userListDisplay').hide();
+    }
+}
+
+// 🎯 NEW FEATURE: Load users when selecting room in Add Command Modal
+function loadUsersForSelectedRoomInModal() {
+    const roomId = $('#roomSelect').val();
+    console.log('🏠 Room selected in modal:', roomId);
+
+    if (roomId) {
+        // Reset user selection
+        $('#userSelect').html('<option value="">⏳ Loading users...</option>');
+
+        // Load users for selected room in modal
+        $.ajax({
+            url: `/api/rooms/${roomId}/users`,
+            method: 'GET',
+            success: function(data) {
+                console.log('✅ Users loaded for modal:', data);
+
+                if (data.status === 'success' && data.users && data.users.length > 0) {
+                    $('#userSelect').html('<option value="">👥 Select User from this Room</option>');
+
+                    data.users.forEach(function(user) {
+                        const displayName = user.display_name || user.user_id;
+                        const badge = user.is_admin ? ' 👑' : '';
+                        $('#userSelect').append(`<option value="${user.user_id}">${displayName}${badge}</option>`);
+                    });
+                } else {
+                    $('#userSelect').html('<option value="" disabled>❌ No users found</option>');
+                }
+            },
+            error: function() {
+                $('#userSelect').html('<option value="" disabled>❌ Error loading users</option>');
+            }
+        });
+    } else {
+        // Reset when no room selected
+        $('#userSelect').html('<option value="">Select Room first...</option>');
+    }
+}
+
+// 🗑️ DELETE COMMAND FUNCTION
+function deleteCommand(commandId) {
+    if (!confirm('Are you sure you want to delete this command? This action cannot be undone.')) {
+        return;
+    }
+
+    $.ajax({
+        url: `/api/commands/${commandId}`,
+        method: 'DELETE',
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('✅ Command deleted successfully!');
+                loadCommands(); // Reload the commands list
+            } else {
+                alert('❌ Error: ' + (data.message || 'Failed to delete command'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Delete command error:', error);
+            alert('❌ Error deleting command: ' + error);
+        }
+    });
+}
+
+// 🧪 ENHANCED TEST COMMAND FUNCTION - Tests ALL commands with comprehensive details
+function testCommandConditions(commandId) {
+    // Create a more sophisticated test modal
+    const testModal = `
+        <div class="modal fade" id="testCommandModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-flask me-2"></i>Test Command: !${commandId}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="testCommandForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">👤 Test User ID</label>
+                                    <input type="text" class="form-control" id="testUserId" value="O5A12345678" placeholder="Enter user ID to test">
+                                    <small class="text-muted">User ID for testing conditions</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">🏠 Test Room ID</label>
+                                    <input type="text" class="form-control" id="testRoomId" value="test_room" placeholder="Enter room ID">
+                                    <small class="text-muted">Room ID for testing</small>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">💬 Test Message</label>
+                                <input type="text" class="form-control" id="testMessage" value="!${commandId}" placeholder="Full message to test">
+                                <small class="text-muted">Complete message including command</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">🕒 Test Time (Optional)</label>
+                                <input type="datetime-local" class="form-control" id="testTime" value="${new Date().toISOString().slice(0, 16)}">
+                                <small class="text-muted">Simulate specific time for time-based conditions</small>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-warning" onclick="executeCommandTest()">
+                            <i class="fas fa-play me-2"></i>Run Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal and add new one
+    $('#testCommandModal').remove();
+    $('body').append(testModal);
+    $('#testCommandModal').modal('show');
+
+    // Store command ID for test execution
+    window.currentTestCommandId = commandId;
+}
+
+// Execute the actual command test
+function executeCommandTest() {
+    const commandId = window.currentTestCommandId;
+    const testUserId = $('#testUserId').val() || 'test_user';
+    const testRoomId = $('#testRoomId').val() || 'test_room';
+    const testMessage = $('#testMessage').val() || `!${commandId}`;
+    const testTime = $('#testTime').val() ? new Date($('#testTime').val()).toISOString() : new Date().toISOString();
+
+    const testData = {
+        command_id: commandId,
+        user_id: testUserId,
+        room_id: testRoomId,
+        message_content: testMessage,
+        timestamp: testTime,
+        test_mode: true,
+        include_all_conditions: true
+    };
+
+    // Show loading state
+    const runButton = $('.modal-footer .btn-warning');
+    const originalText = runButton.html();
+    runButton.html('<i class="fas fa-spinner fa-spin me-2"></i>Testing...').prop('disabled', true);
+
+    $.ajax({
+        url: `/api/commands/${commandId}/test`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            user_id: testUserId,
+            room_id: testRoomId,
+            message: testMessage
+        }),
+        success: function(data) {
+            runButton.html(originalText).prop('disabled', false);
+            $('#testCommandModal').modal('hide');
+
+            if (data.status === 'success') {
+                showTestResults(data, testData);
+            } else {
+                alert('❌ Test Error: ' + (data.message || 'Failed to test command'));
+            }
+        },
+        error: function(xhr, status, error) {
+            runButton.html(originalText).prop('disabled', false);
+            console.error('Test command error:', error);
+            let errorMsg = 'Error testing command';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            }
+            alert('❌ ' + errorMsg);
+        }
+    });
+}
+
+// Show comprehensive test results
+function showTestResults(data, testData) {
+    const testResult = data.test_result;
+
+    let resultMessage = '🧪 COMPREHENSIVE TEST RESULTS\n';
+    resultMessage += '═'.repeat(50) + '\n\n';
+
+    // Basic Info
+    resultMessage += '📋 TEST PARAMETERS:\n';
+    resultMessage += `✅ Command: !${testResult.command_name}\n`;
+    resultMessage += `👤 Test User: ${testResult.test_user_id}\n`;
+    resultMessage += `🏠 Test Room: ${testResult.test_room_id}\n`;
+    resultMessage += `💬 Test Message: ${testResult.test_message}\n`;
+    resultMessage += `🕒 Test Time: ${new Date(testResult.test_timestamp).toLocaleString()}\n\n`;
+
+    // Overall Result
+    resultMessage += '🎯 OVERALL RESULT:\n';
+    resultMessage += `📊 Command Type: ${testResult.command_type}\n`;
+    resultMessage += `📊 Command Status: ${testResult.test_status.toUpperCase()}\n`;
+    resultMessage += `📊 Enabled: ${testResult.enabled ? 'YES ✅' : 'NO ❌'}\n`;
+    resultMessage += `💬 Bot Response: ${testResult.response || 'No response configured'}\n\n`;
+
+    // Conditions Check
+    if (testResult.conditions_check) {
+        const condCheck = testResult.conditions_check;
+        resultMessage += '📋 CONDITIONS ANALYSIS:\n';
+        resultMessage += `📊 Overall: ${condCheck.passed ? 'PASSED ✅' : 'FAILED ❌'}\n`;
+        resultMessage += `📝 Message: ${condCheck.message}\n\n`;
+
+        if (condCheck.checks && condCheck.checks.length > 0) {
+            resultMessage += '🔍 DETAILED CHECKS:\n';
+            condCheck.checks.forEach(check => {
+                const status = check.passed ? '✅ PASS' : '❌ FAIL';
+                resultMessage += `  • ${check.type}: ${status}\n`;
+                resultMessage += `    └─ ${check.message}\n`;
+            });
+            resultMessage += '\n';
+        }
+    }
+
+    // Command Info
+    resultMessage += '📝 COMMAND INFO:\n';
+    resultMessage += `  • Type: ${testResult.command_type}\n`;
+    resultMessage += `  • Enabled: ${testResult.enabled ? 'Yes' : 'No'}\n`;
+    if (testResult.admin_only !== undefined) {
+        resultMessage += `  • Admin Only: ${testResult.admin_only ? 'Yes' : 'No'}\n`;
+    }
+
+    // Show in a scrollable alert-like modal
+    showTestResultsModal(resultMessage);
+}
+
+// Show test results in a proper modal
+function showTestResultsModal(resultText) {
+    const resultsModal = `
+        <div class="modal fade" id="testResultsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-chart-line me-2"></i>Test Results</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 0.375rem; max-height: 500px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.4;">${resultText}</pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="copyTestResults()">
+                            <i class="fas fa-copy me-2"></i>Copy Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('#testResultsModal').remove();
+    $('body').append(resultsModal);
+    $('#testResultsModal').modal('show');
+
+    // Store results for copying
+    window.lastTestResults = resultText;
+}
+
+// Copy test results to clipboard
+function copyTestResults() {
+    if (window.lastTestResults) {
+        navigator.clipboard.writeText(window.lastTestResults).then(() => {
+            alert('✅ Test results copied to clipboard!');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = window.lastTestResults;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('✅ Test results copied to clipboard!');
+        });
+    }
+}
+
+
+
+function toggleCommand(commandName) {
+    if (confirm(`Are you sure you want to toggle command "${commandName}"?`)) {
+        $.ajax({
+            url: `/api/commands/${commandName}/toggle`,
+            method: 'POST',
+            success: function(data) {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON?.message || 'Unknown error'));
+            }
+        });
+    }
+}
+
+function refreshUsers() {
+    const roomId = $('#editResponseRoomId').val();
+    if (roomId) {
+        loadUsersForRoom(roomId, true);
+    } else {
+        alert('Please select a room first');
+    }
+}
+
+// ==================== CONDITIONS SYSTEM ====================
+
+// Setup condition toggles
+function setupConditionToggles() {
+    // Character Length toggle
+    $('#enableCharacterLength').change(function() {
+        $('#characterLengthInputs').toggle(this.checked);
+    });
+
+    // Required Words toggle (moved from Required Characters)
+    $('#enableRequiredWords').change(function() {
+        $('#requiredWordsInputs').toggle(this.checked);
+    });
+
+    // Forbidden Words toggle
+    $('#enableForbiddenWords').change(function() {
+        $('#forbiddenWordsInputs').toggle(this.checked);
+    });
+
+    // Argument Pattern toggle
+    $('#enableArgumentPattern').change(function() {
+        $('#argumentPatternInputs').toggle(this.checked);
+    });
+
+    // Time Range toggle
+    $('#enableTimeRange').change(function() {
+        $('#timeRangeInputs').toggle(this.checked);
+    });
+
+    // Cooldown toggle
+    $('#enableCooldown').change(function() {
+        $('#cooldownInputs').toggle(this.checked);
+    });
+
+    // Day of Week toggle
+    $('#enableDayOfWeek').change(function() {
+        $('#dayOfWeekInputs').toggle(this.checked);
+    });
+}
+
+// Setup scope handling
+function setupScopeHandling() {
+    $('input[name="commandScope"]').change(function() {
+        const scope = $(this).val();
+
+        if (scope === 'user') {
+            $('#userSelectionDiv').show();
+            $('#roomSelectionDiv').show();
+        } else if (scope === 'room') {
+            $('#userSelectionDiv').hide();
+            $('#roomSelectionDiv').show();
+        } else if (scope === 'global') {
+            $('#userSelectionDiv').hide();
+            $('#roomSelectionDiv').hide();
+        }
+    });
+}
+
+// Load users and rooms for selection
+function loadUsersAndRooms() {
+    // Load rooms
+    $.ajax({
+        url: '/api/rooms',
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success') {
+                const roomSelect = $('#roomSelect');
+                roomSelect.empty();
+                roomSelect.append('<option value="">Select a room</option>');
+
+                data.rooms.forEach(function(room) {
+                    roomSelect.append(`<option value="${room.room_id}">${room.name}</option>`);
+                });
+            }
+        },
+        error: function() {
+            $('#roomSelect').html('<option value="">Error loading rooms</option>');
+        }
+    });
+
+    // Load users (simplified)
+    const userSelect = $('#userSelect');
+    userSelect.empty();
+    userSelect.append('<option value="">Select a user</option>');
+    userSelect.append('<option value="admin">Admin</option>');
+}
+
+// Build conditions object from form
+function buildConditions() {
+    const conditions = {};
+
+    // Character Length
+    if ($('#enableCharacterLength').is(':checked')) {
+        const length = parseInt($('#characterLengthValue').val());
+        const description = $('#characterLengthDescription').val().trim();
+        if (length > 0) {
+            conditions.character_length = {
+                enabled: true,
+                length: length,
+                description: description || `Must be exactly ${length} characters`
+            };
+        }
+    }
+
+    // Required Words (moved from Required Characters)
+    if ($('#enableRequiredWords').is(':checked')) {
+        const wordsText = $('#requiredWords').val().trim();
+        const description = $('#requiredWordsDescription').val().trim();
+        if (wordsText) {
+            const words = wordsText.split(',').map(w => w.trim()).filter(w => w);
+            if (words.length > 0) {
+                conditions.required_words = {
+                    enabled: true,
+                    words: words,
+                    description: description || `Must contain all: ${words.join(', ')}`
+                };
+            }
+        }
+    }
+
+    // Forbidden Words
+    if ($('#enableForbiddenWords').is(':checked')) {
+        const wordsText = $('#forbiddenWords').val().trim();
+        const description = $('#forbiddenWordsDescription').val().trim();
+        if (wordsText) {
+            const words = wordsText.split(',').map(w => w.trim()).filter(w => w);
+            if (words.length > 0) {
+                conditions.forbidden_words = {
+                    enabled: true,
+                    words: words,
+                    description: description || `Must not contain: ${words.join(', ')}`
+                };
+            }
+        }
+    }
+
+    // Argument Pattern (Advanced)
+    if ($('#enableArgumentPattern').is(':checked')) {
+        const pattern = $('#argumentPatternRegex').val().trim();
+        const description = $('#argumentPatternDescription').val().trim();
+        if (pattern) {
+            conditions.argument_pattern = {
+                enabled: true,
+                pattern: pattern,
+                description: description || 'Argument pattern validation'
+            };
+        }
+    }
+
+    // Time range
+    if ($('#enableTimeRange').is(':checked')) {
+        conditions.time_range = {
+            enabled: true,
+            start: $('#startTime').val(),
+            end: $('#endTime').val()
+        };
+    }
+
+
+
+    // Cooldown
+    if ($('#enableCooldown').is(':checked')) {
+        conditions.cooldown = {
+            enabled: true,
+            seconds: parseInt($('#cooldownSeconds').val()) || 60
+        };
+    }
+
+    // Day of week
+    if ($('#enableDayOfWeek').is(':checked')) {
+        const days = [];
+        $('#dayOfWeekInputs input[type="checkbox"]:checked').each(function() {
+            days.push(parseInt($(this).val()));
+        });
+        if (days.length > 0) {
+            conditions.day_of_week = {
+                enabled: true,
+                days: days
+            };
+        }
+    }
+
+    return conditions;
+}
+
+// Save command with conditions
+function saveCommandWithConditions() {
+    const commandData = {
+        command_name: $('#commandName').val(),
+        response: $('#commandResponse').val(),
+        scope: 'global', // Default to global since we removed scope selection
+        conditions: buildConditions()
+    };
+
+    if (!commandData.command_name || !commandData.response) {
+        alert('⚠️ Please fill in command name and response');
+        return;
+    }
+
+    // Validation by scope
+    if (commandData.scope === 'user' && (!commandData.user_id || !commandData.room_id)) {
+        alert('⚠️ Please select both Room and User for personal command');
+        return;
+    }
+
+    if (commandData.scope === 'room' && !commandData.room_id) {
+        alert('⚠️ Please select Room for room-based command');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/commands',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(commandData),
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('✅ Command with conditions created successfully!');
+                $('#addCommandModal').modal('hide');
+                loadCommands();
+                resetConditionsForm();
+            } else {
+                alert('❌ Error: ' + (data.message || 'Failed to create command'));
+            }
+        },
+        error: function() {
+            alert('❌ Error creating command with conditions');
+        }
+    });
+}
+
+// Reset conditions form
+function resetConditionsForm() {
+    $('#addCommandForm')[0].reset();
+    $('.accordion-collapse').removeClass('show');
+    $('#characterLengthInputs, #requiredWordsInputs, #forbiddenWordsInputs, #argumentPatternInputs, #timeRangeInputs, #userIdPatternInputs, #cooldownInputs, #dayOfWeekInputs').hide();
+}
+
+// Format conditions for display
+function formatConditions(conditions) {
+    const parts = [];
+
+    // User ID Pattern
+    if (conditions.user_id_pattern) {
+        const pattern = conditions.user_id_pattern.pattern || conditions.user_id_pattern;
+        parts.push(`👤 User Pattern: ${pattern}`);
+    }
+
+    // Message Keywords
+    if (conditions.message_keywords) {
+        const keywords = conditions.message_keywords.keywords || conditions.message_keywords;
+        const matchType = conditions.message_keywords.match_type || 'exact';
+        if (Array.isArray(keywords)) {
+            parts.push(`🔑 Keywords (${matchType}): ${keywords.join(', ')}`);
+        }
+    }
+
+    // Time range
+    if (conditions.time_range) {
+        const start = conditions.time_range.start;
+        const end = conditions.time_range.end;
+        parts.push(`🕐 Time: ${start}-${end}`);
+    }
+
+    // Required words
+    if (conditions.required_words) {
+        const words = conditions.required_words.words || conditions.required_words;
+        if (Array.isArray(words)) {
+            parts.push(`✅ Requires: ${words.join(', ')}`);
+        }
+    }
+
+    // Forbidden words
+    if (conditions.forbidden_words) {
+        const words = conditions.forbidden_words.words || conditions.forbidden_words;
+        if (Array.isArray(words)) {
+            parts.push(`❌ Forbids: ${words.join(', ')}`);
+        }
+    }
+
+    // Cooldown
+    if (conditions.cooldown) {
+        const seconds = conditions.cooldown.seconds || conditions.cooldown;
+        parts.push(`⏱️ Cooldown: ${seconds}s`);
+    }
+
+    // Day of week
+    if (conditions.day_of_week) {
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const dayNumbers = conditions.day_of_week.days || conditions.day_of_week;
+        if (Array.isArray(dayNumbers)) {
+            const dayNames = dayNumbers.map(d => days[d-1]).join(', ');
+            parts.push(`📅 Days: ${dayNames}`);
+        }
+    }
+
+    return parts.length > 0 ? parts.join(' | ') : 'No conditions';
+}
+
+// Get scope badge
+function getScopeBadge(scope) {
+    switch(scope) {
+        case 'user': return '<span class="badge bg-info">User</span>';
+        case 'room': return '<span class="badge bg-warning">Room</span>';
+        case 'global': return '<span class="badge bg-success">Global</span>';
+        default: return '<span class="badge bg-secondary">Unknown</span>';
+    }
+}
+
+// Edit command with conditions
+function editCommandWithConditions(commandId) {
+    // Load command data and populate the Add Command modal with edit mode
+    $.ajax({
+        url: `/api/commands/${commandId}`,
+        method: 'GET',
+        success: function(data) {
+            if (data.status === 'success') {
+                const cmd = data.command;
+
+                // Populate form fields
+                $('#commandName').val(cmd.command_name || cmd.name);
+                $('#commandResponse').val(cmd.response);
+
+                // Set scope
+                $(`input[name="commandScope"][value="${cmd.scope || 'global'}"]`).prop('checked', true);
+
+                // Populate conditions
+                populateConditionsForm(cmd.conditions || {});
+
+                // Set modal title to edit mode
+                $('#addCommandModal .modal-title').html('<i class="fas fa-edit me-2"></i>Edit Command with Conditions');
+
+                // Change save button
+                $('#addCommandModal .modal-footer .btn-primary').attr('onclick', `updateCommandWithConditions('${commandId}')`).html('<i class="fas fa-save me-2"></i>Update Command');
+
+                // Show modal
+                $('#addCommandModal').modal('show');
+            } else {
+                alert('❌ Error loading command: ' + data.message);
+            }
+        },
+        error: function() {
+            alert('❌ Error loading command for editing');
+        }
+    });
+}
+
+// Populate conditions form with existing data
+function populateConditionsForm(conditions) {
+    console.log('🔧 Populating conditions form with:', conditions);
+
+    // Reset all conditions first
+    $('.accordion-collapse').removeClass('show');
+    $('#characterLengthInputs, #requiredCharsInputs, #argumentPatternInputs, #timeRangeInputs, #requiredWordsInputs, #forbiddenWordsInputs, #userIdPatternInputs, #cooldownInputs, #dayOfWeekInputs').hide();
+
+    // Reset all checkboxes
+    $('#enableCharacterLength, #enableRequiredChars, #enableArgumentPattern, #enableTimeRange, #enableRequiredWords, #enableForbiddenWords, #enableUserIdPattern, #enableCooldown, #enableDayOfWeek').prop('checked', false);
+
+    // Character Length (new)
+    if (conditions.character_length) {
+        $('#enableCharacterLength').prop('checked', true);
+        $('#characterLengthInputs').show();
+        $('#characterLengthValue').val(conditions.character_length.length || 11);
+        $('#characterLengthDescription').val(conditions.character_length.description || '');
+        $('#messageConditions').addClass('show');
+    }
+
+    // Required Words (moved from Required Characters)
+    if (conditions.required_words) {
+        $('#enableRequiredWords').prop('checked', true);
+        $('#requiredWordsInputs').show();
+        const words = conditions.required_words.words || conditions.required_words;
+        $('#requiredWords').val(Array.isArray(words) ? words.join(', ') : words);
+        $('#requiredWordsDescription').val(conditions.required_words.description || '');
+        $('#messageConditions').addClass('show');
+    }
+
+    // Forbidden Words
+    if (conditions.forbidden_words) {
+        $('#enableForbiddenWords').prop('checked', true);
+        $('#forbiddenWordsInputs').show();
+        const words = conditions.forbidden_words.words || conditions.forbidden_words;
+        $('#forbiddenWords').val(Array.isArray(words) ? words.join(', ') : words);
+        $('#forbiddenWordsDescription').val(conditions.forbidden_words.description || '');
+        $('#messageConditions').addClass('show');
+    }
+
+    // Argument Pattern (new)
+    if (conditions.argument_pattern) {
+        $('#enableArgumentPattern').prop('checked', true);
+        $('#argumentPatternInputs').show();
+        $('#argumentPatternRegex').val(conditions.argument_pattern.pattern || '');
+        $('#argumentPatternDescription').val(conditions.argument_pattern.description || '');
+        $('#messageConditions').addClass('show');
+    }
+
+    // Time range
+    if (conditions.time_range) {
+        $('#enableTimeRange').prop('checked', true);
+        $('#timeRangeInputs').show();
+        $('#startTime').val(conditions.time_range.start);
+        $('#endTime').val(conditions.time_range.end);
+        $('#timeConditions').addClass('show');
+    }
+
+
+
+    // User ID Pattern (legacy support)
+    if (conditions.user_id_pattern) {
+        $('#enableUserIdPattern').prop('checked', true);
+        $('#userIdPatternInputs').show();
+        $('#userIdPatternRegex').val(conditions.user_id_pattern.pattern || '');
+        $('#userIdPatternDescription').val(conditions.user_id_pattern.description || '');
+        $('#advancedConditions').addClass('show');
+    }
+
+    // Cooldown
+    if (conditions.cooldown) {
+        $('#enableCooldown').prop('checked', true);
+        $('#cooldownInputs').show();
+        const seconds = conditions.cooldown.seconds || conditions.cooldown;
+        $('#cooldownSeconds').val(seconds);
+        $('#advancedConditions').addClass('show');
+    }
+
+    // Day of week
+    if (conditions.day_of_week) {
+        $('#enableDayOfWeek').prop('checked', true);
+        $('#dayOfWeekInputs').show();
+        $('#dayOfWeekInputs input[type="checkbox"]').prop('checked', false);
+        const days = conditions.day_of_week.days || conditions.day_of_week;
+        if (Array.isArray(days)) {
+            days.forEach(day => {
+                $(`#dayOfWeekInputs input[value="${day}"]`).prop('checked', true);
+            });
+        }
+        $('#advancedConditions').addClass('show');
+    }
+
+    console.log('✅ Conditions form populated successfully');
+}
+
+// Update command with conditions
+function updateCommandWithConditions(commandId) {
+    const commandData = {
+        command_name: $('#commandName').val(),
+        response: $('#commandResponse').val(),
+        scope: 'global', // Default to global since we removed scope selection
+        conditions: buildConditions()
+    };
+
+    if (!commandData.command_name || !commandData.response) {
+        alert('Please fill in command name and response');
+        return;
+    }
+
+    $.ajax({
+        url: `/api/commands/${commandId}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(commandData),
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('Command updated successfully!');
+                $('#addCommandModal').modal('hide');
+                loadCommands();
+                resetModalToAddMode();
+            } else {
+                alert(data.message || 'Error updating command');
+            }
+        },
+        error: function() {
+            alert('Error updating command');
+        }
+    });
+}
+
+
+
+// Edit response quickly
+function editResponse(commandId) {
+    const newResponse = prompt('Enter new response for this command:');
+    if (newResponse === null) return; // User cancelled
+
+    if (!newResponse.trim()) {
+        alert('Response cannot be empty');
+        return;
+    }
+
+    $.ajax({
+        url: `/api/commands/${commandId}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            response: newResponse.trim()
+        }),
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('Response updated successfully!');
+                loadCommands();
+            } else {
+                alert('Error updating response: ' + data.message);
+            }
+        },
+        error: function() {
+            alert('Error updating response');
+        }
+    });
+}
+
+
+
+// Toggle command enable/disable
+function toggleCommand(commandId) {
+    if (!confirm('Are you sure you want to toggle this command?')) return;
+
+    $.ajax({
+        url: `/api/commands/${commandId}/toggle`,
+        method: 'POST',
+        success: function(data) {
+            if (data.status === 'success') {
+                alert(data.message);
+                loadCommands();
+            } else {
+                alert('Error toggling command: ' + data.message);
+            }
+        },
+        error: function() {
+            alert('Error toggling command');
+        }
+    });
+}
+
+// Delete command
+function deleteCommand(commandId) {
+    if (!confirm('Are you sure you want to delete this command? This action cannot be undone.')) return;
+
+    $.ajax({
+        url: `/api/commands/${commandId}`,
+        method: 'DELETE',
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('Command deleted successfully!');
+                loadCommands();
+            } else {
+                alert('Error deleting command: ' + data.message);
+            }
+        },
+        error: function() {
+            alert('Error deleting command');
+        }
+    });
+}
+
+// Reset modal to add mode
+function resetModalToAddMode() {
+    $('#addCommandModal .modal-title').html('<i class="fas fa-plus me-2"></i>Add Command with Conditions');
+    $('#addCommandModal .modal-footer .btn-primary').attr('onclick', 'saveCommandWithConditions()').html('<i class="fas fa-save me-2"></i>Save Command');
+}
+
+// Override modal hide to reset to add mode
+$('#addCommandModal').on('hidden.bs.modal', function() {
+    resetModalToAddMode();
+    resetConditionsForm();
+});
+
+// Initialize conditions system
+$(document).ready(function() {
+    setupConditionToggles();
+    setupScopeHandling();
+    loadUsersAndRooms();
+});
+</script>
+{% endblock %}

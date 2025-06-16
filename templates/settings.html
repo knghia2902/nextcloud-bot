@@ -1,0 +1,1271 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Nextcloud Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-cog me-2"></i>Settings</h2>
+                <p class="text-muted mb-0">Configure bot settings and system parameters</p>
+            </div>
+            <div>
+                <span class="badge bg-success me-2" id="config-status">
+                    <i class="fas fa-check-circle me-1"></i>Configuration Loaded
+                </span>
+                <button class="btn btn-outline-primary btn-sm" onclick="loadCurrentConfig()">
+                    <i class="fas fa-sync-alt me-1"></i>Reload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-cloud fa-2x text-primary mb-2"></i>
+                <h6 class="card-title">Nextcloud</h6>
+                <span class="badge bg-secondary" id="nextcloud-config-status">Not Configured</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-robot fa-2x text-info mb-2"></i>
+                <h6 class="card-title">OpenRouter AI</h6>
+                <span class="badge bg-secondary" id="openrouter-config-status">Not Configured</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-plug fa-2x text-warning mb-2"></i>
+                <h6 class="card-title">Integrations</h6>
+                <span class="badge bg-secondary" id="integrations-config-status">Not Configured</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-cog fa-2x text-success mb-2"></i>
+                <h6 class="card-title">Bot Settings</h6>
+                <span class="badge bg-secondary" id="bot-config-status">Not Configured</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Configuration Settings</h5>
+                <small class="text-muted">Settings are automatically synced with setup wizard</small>
+            </div>
+            <div class="card-body">
+                <form id="settingsForm">
+                    <!-- Configuration Tabs -->
+                    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="nextcloud-tab" data-bs-toggle="tab" data-bs-target="#nextcloud-config" type="button">
+                                <i class="fas fa-cloud me-1"></i>Nextcloud
+                                <span class="badge bg-light text-dark ms-1" id="nextcloud-tab-status">●</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-config" type="button">
+                                <i class="fas fa-robot me-1"></i>OpenRouter AI
+                                <span class="badge bg-light text-dark ms-1" id="openrouter-tab-status">●</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations-config" type="button">
+                                <i class="fas fa-plug me-1"></i>Integrations
+                                <span class="badge bg-light text-dark ms-1" id="integrations-tab-status">●</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bot-tab" data-bs-toggle="tab" data-bs-target="#bot-config" type="button">
+                                <i class="fas fa-cog me-1"></i>Bot Settings
+                                <span class="badge bg-light text-dark ms-1" id="bot-tab-status">●</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3" id="configTabContent">
+                        <!-- Nextcloud Configuration -->
+                        <div class="tab-pane fade show active" id="nextcloud-config" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6><i class="fas fa-cloud me-2 text-primary"></i>Nextcloud Talk Configuration</h6>
+                                <div>
+                                    <span class="badge bg-light text-dark" id="nextcloud-status-badge">Not Configured</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="testConnection('nextcloud')">
+                                        <i class="fas fa-plug me-1"></i>Test Connection
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Setup Instructions:</strong>
+                                <ol class="mb-0 mt-2">
+                                    <li>Go to your Nextcloud instance</li>
+                                    <li>Navigate to Settings → Security</li>
+                                    <li>Create a new App Password for the bot</li>
+                                    <li>Copy the generated password and paste below</li>
+                                </ol>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nextcloud_url" class="form-label">
+                                            <i class="fas fa-globe me-1"></i>Nextcloud URL *
+                                        </label>
+                                        <input type="url" class="form-control" id="nextcloud_url"
+                                               placeholder="https://your-nextcloud.com" required>
+                                        <div class="form-text">Full URL to your Nextcloud instance (without trailing slash)</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="nextcloud_username" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Username *
+                                        </label>
+                                        <input type="text" class="form-control" id="nextcloud_username" required>
+                                        <div class="form-text">Your Nextcloud username</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="nextcloud_password" class="form-label">
+                                            <i class="fas fa-key me-1"></i>App Password *
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="nextcloud_password" required>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('nextcloud_password')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">Generate in Nextcloud Settings → Security → App passwords</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="room_id" class="form-label">
+                                            <i class="fas fa-comments me-1"></i>Default Room ID
+                                        </label>
+                                        <input type="text" class="form-control" id="room_id" placeholder="room_token">
+                                        <div class="form-text">Talk room token for bot messages (optional)</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="nextcloud_enabled" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Status
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="nextcloud_enabled" checked>
+                                            <label class="form-check-label" for="nextcloud_enabled">
+                                                Enable Nextcloud Integration
+                                            </label>
+                                        </div>
+                                        <div class="form-text">Turn on/off Nextcloud Talk integration</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body py-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-lightbulb me-1"></i>
+                                                    <strong>Tip:</strong> You can find room tokens in the Talk app URL or use the room picker in the setup wizard.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OpenRouter AI Configuration -->
+                        <div class="tab-pane fade" id="ai-config" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6><i class="fas fa-robot me-2 text-info"></i>OpenRouter AI Configuration</h6>
+                                <div>
+                                    <span class="badge bg-light text-dark" id="openrouter-status-badge">Not Configured</span>
+                                    <button type="button" class="btn btn-sm btn-outline-info ms-2" onclick="testConnection('openrouter')">
+                                        <i class="fas fa-robot me-1"></i>Test API
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>OpenRouter Setup:</strong>
+                                <ol class="mb-0 mt-2">
+                                    <li>Visit <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create an account</li>
+                                    <li>Go to Settings → Keys and create a new API key</li>
+                                    <li>Copy the API key (starts with sk-or-) and paste below</li>
+                                    <li>Add credits to your account for API usage</li>
+                                </ol>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="openrouter_api_key" class="form-label">
+                                            <i class="fas fa-key me-1"></i>OpenRouter API Key *
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="openrouter_api_key"
+                                                   placeholder="sk-or-v1-..." required>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('openrouter_api_key')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">Get from <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="openrouter_model" class="form-label">
+                                            <i class="fas fa-brain me-1"></i>AI Model
+                                        </label>
+                                        <select class="form-select" id="openrouter_model">
+                                            <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (Free)</option>
+                                            <option value="anthropic/claude-3-haiku">Claude 3 Haiku (Fast & Cheap)</option>
+                                            <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet (Balanced)</option>
+                                            <option value="anthropic/claude-3-opus">Claude 3 Opus (Best Quality)</option>
+                                            <option value="openai/gpt-4o">GPT-4o (Advanced)</option>
+                                            <option value="openai/gpt-4o-mini">GPT-4o Mini (Fast)</option>
+                                            <option value="google/gemini-pro">Gemini Pro</option>
+                                        </select>
+                                        <div class="form-text">Choose based on your needs and budget</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="openrouter_enabled" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Status
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="openrouter_enabled" checked>
+                                            <label class="form-check-label" for="openrouter_enabled">
+                                                Enable OpenRouter AI
+                                            </label>
+                                        </div>
+                                        <div class="form-text">Turn on/off AI responses</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body py-2">
+                                                <h6 class="card-title mb-1">
+                                                    <i class="fas fa-chart-line me-1"></i>Usage Estimate
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Free models: $0/month<br>
+                                                    Claude Haiku: ~$1-5/month<br>
+                                                    Claude Sonnet: ~$5-15/month<br>
+                                                    GPT-4o: ~$10-30/month
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Integrations Configuration -->
+                        <div class="tab-pane fade" id="integrations-config" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6><i class="fas fa-plug me-2 text-warning"></i>External Integrations</h6>
+                                <div>
+                                    <span class="badge bg-light text-dark" id="integrations-status-badge">Optional</span>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Optional Integrations:</strong> These integrations are optional but can enhance bot functionality.
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <h6 class="mb-0"><i class="fas fa-table me-2"></i>Google Sheets</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="google_sheets_spreadsheet_id" class="form-label">
+                                                    <i class="fas fa-file-alt me-1"></i>Spreadsheet ID
+                                                </label>
+                                                <input type="text" class="form-control" id="google_sheets_spreadsheet_id"
+                                                       placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
+                                                <div class="form-text">Found in the Google Sheets URL</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="google_sheets_credentials_file" class="form-label">
+                                                    <i class="fas fa-key me-1"></i>Credentials File
+                                                </label>
+                                                <input type="text" class="form-control" id="google_sheets_credentials_file"
+                                                       value="credentials.json" readonly>
+                                                <div class="form-text">Upload credentials.json to project root</div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="google_sheets_enabled">
+                                                <label class="form-check-label" for="google_sheets_enabled">
+                                                    Enable Google Sheets
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-warning">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h6 class="mb-0"><i class="fas fa-link me-2"></i>n8n Automation</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="n8n_webhook_url" class="form-label">
+                                                    <i class="fas fa-globe me-1"></i>Webhook URL
+                                                </label>
+                                                <input type="url" class="form-control" id="n8n_webhook_url"
+                                                       placeholder="https://your-n8n.com/webhook/...">
+                                                <div class="form-text">n8n webhook endpoint for automation</div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="n8n_enabled">
+                                                <label class="form-check-label" for="n8n_enabled">
+                                                    Enable n8n Webhook
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end mt-3">
+                                <button type="button" class="btn btn-outline-success me-2" onclick="testConnection('sheets')">
+                                    <i class="fas fa-table me-1"></i>Test Google Sheets
+                                </button>
+                                <button type="button" class="btn btn-outline-warning" onclick="testConnection('n8n')">
+                                    <i class="fas fa-link me-1"></i>Test n8n Webhook
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bot Settings -->
+                        <div class="tab-pane fade" id="bot-config" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6><i class="fas fa-cog me-2 text-success"></i>Bot Behavior Settings</h6>
+                                <div>
+                                    <span class="badge bg-light text-dark" id="bot-status-badge">Default Settings</span>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-success">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Bot Configuration:</strong> Customize how your bot behaves and responds to users.
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="bot_name" class="form-label">
+                                            <i class="fas fa-robot me-1"></i>Bot Name
+                                        </label>
+                                        <input type="text" class="form-control" id="bot_name" value="NextcloudBot">
+                                        <div class="form-text">Display name for the bot</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="admin_user_id" class="form-label">
+                                            <i class="fas fa-user-shield me-1"></i>Admin User ID
+                                        </label>
+                                        <input type="text" class="form-control" id="admin_user_id" placeholder="admin_username">
+                                        <div class="form-text">Nextcloud username with admin privileges</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="language" class="form-label">
+                                            <i class="fas fa-language me-1"></i>Language
+                                        </label>
+                                        <select class="form-select" id="language">
+                                            <option value="vi">Tiếng Việt</option>
+                                            <option value="en">English</option>
+                                            <option value="fr">Français</option>
+                                            <option value="de">Deutsch</option>
+                                            <option value="es">Español</option>
+                                        </select>
+                                        <div class="form-text">Bot response language</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="log_level" class="form-label">
+                                            <i class="fas fa-list me-1"></i>Log Level
+                                        </label>
+                                        <select class="form-select" id="log_level">
+                                            <option value="DEBUG">DEBUG (Verbose)</option>
+                                            <option value="INFO" selected>INFO (Normal)</option>
+                                            <option value="WARNING">WARNING (Errors only)</option>
+                                            <option value="ERROR">ERROR (Critical only)</option>
+                                        </select>
+                                        <div class="form-text">Amount of logging detail</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="auto_response" checked>
+                                            <label class="form-check-label" for="auto_response">
+                                                <i class="fas fa-reply me-1"></i>Auto Response
+                                            </label>
+                                        </div>
+                                        <div class="form-text">Automatically respond to mentions</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body py-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-lightbulb me-1"></i>
+                                                    <strong>Tip:</strong> Admin user can use special commands and manage the bot through chat.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-outline-info me-2" onclick="testAllConnections()">
+                            <i class="fas fa-network-wired me-1"></i>Test All Connections
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary me-2" onclick="loadCurrentConfig()">
+                            <i class="fas fa-download me-1"></i>Load Config
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                            <i class="fas fa-save me-1"></i>Lưu cấu hình
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2"><strong>Overall:</strong> <span class="badge bg-success">Healthy</span></div>
+                <div class="mb-2"><strong>Bot:</strong> <span class="badge bg-success">Running</span></div>
+                <div class="mb-2"><strong>Database:</strong> <span class="badge bg-success">Connected</span></div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-network-wired me-2"></i>Connection Tests</h5>
+            </div>
+            <div class="card-body">
+                <div id="connectionTests">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-cloud me-2 text-primary"></i>Nextcloud Talk</span>
+                            <div>
+                                <span class="badge bg-secondary me-1" id="nextcloud-status">Not Tested</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="testConnection('nextcloud')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-muted" id="nextcloud-details">Chat integration status</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-table me-2 text-success"></i>Google Sheets</span>
+                            <div>
+                                <span class="badge bg-secondary me-1" id="sheets-status">Not Tested</span>
+                                <button class="btn btn-sm btn-outline-success" onclick="testConnection('sheets')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-muted" id="sheets-details">Spreadsheet integration status</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-robot me-2 text-info"></i>OpenRouter AI</span>
+                            <div>
+                                <span class="badge bg-secondary me-1" id="openrouter-status">Not Tested</span>
+                                <button class="btn btn-sm btn-outline-info" onclick="testConnection('openrouter')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-muted" id="openrouter-details">AI API connection status</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-link me-2 text-warning"></i>n8n Webhook</span>
+                            <div>
+                                <span class="badge bg-secondary me-1" id="n8n-status">Not Tested</span>
+                                <button class="btn btn-sm btn-outline-warning" onclick="testConnection('n8n')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-muted" id="n8n-details">Automation webhook status</small>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="testAllConnections()">
+                        <i class="fas fa-sync-alt me-1"></i>Test All Connections
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="loadCurrentConfig()">
+                        <i class="fas fa-download me-1"></i>Load Current Config
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Connection Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-success" id="connected-count">0</h4>
+                        <small>Connected</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-danger" id="failed-count">0</h4>
+                        <small>Failed</small>
+                    </div>
+                </div>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" id="connection-progress" style="width: 0%"></div>
+                </div>
+                <div class="text-center mt-2">
+                    <small class="text-muted" id="connection-summary">No tests run yet</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings() {
+    showAlert('info', 'Đang lưu cấu hình...', true);
+    updateSaveStatus('saving');
+
+    // Collect all settings from all tabs - match setup wizard format
+    const settings = {
+        nextcloud: {
+            url: $('#nextcloud_url').val().trim(),
+            username: $('#nextcloud_username').val().trim(),
+            password: $('#nextcloud_password').val().trim(),
+            room_id: $('#room_id').val().trim(),
+            enabled: $('#nextcloud_enabled').is(':checked')
+        },
+        openrouter: {
+            api_key: $('#openrouter_api_key').val().trim(),
+            model: $('#openrouter_model').val(),
+            enabled: $('#openrouter_enabled').is(':checked')
+        },
+        integrations: {
+            google_sheets: {
+                spreadsheet_id: $('#google_sheets_spreadsheet_id').val().trim(),
+                credentials_file: $('#google_sheets_credentials_file').val().trim(),
+                enabled: $('#google_sheets_enabled').is(':checked')
+            },
+            n8n_webhook_url: $('#n8n_webhook_url').val().trim(),
+            n8n_enabled: $('#n8n_enabled').is(':checked')
+        },
+        bot: {
+            name: $('#bot_name').val().trim() || 'NextcloudBot',
+            admin_user_id: $('#admin_user_id').val().trim(),
+            language: $('#language').val(),
+            auto_respond: $('#auto_response').is(':checked'),
+            log_level: $('#log_level').val()
+        }
+    };
+
+    // Validate required fields
+    const errors = [];
+
+    if (settings.nextcloud.enabled) {
+        if (!settings.nextcloud.url) {
+            errors.push('Nextcloud: URL là bắt buộc khi bật Nextcloud');
+        }
+        if (!settings.nextcloud.username) {
+            errors.push('Nextcloud: Username là bắt buộc khi bật Nextcloud');
+        }
+        if (!settings.nextcloud.password) {
+            errors.push('Nextcloud: App Password là bắt buộc khi bật Nextcloud');
+        }
+    }
+
+    if (settings.openrouter.enabled) {
+        if (!settings.openrouter.api_key) {
+            errors.push('OpenRouter: API key là bắt buộc khi bật OpenRouter');
+        } else if (!settings.openrouter.api_key.startsWith('sk-or-')) {
+            errors.push('OpenRouter: API key phải bắt đầu với "sk-or-"');
+        }
+    }
+
+    if (settings.integrations.n8n_enabled && settings.integrations.n8n_webhook_url &&
+        !settings.integrations.n8n_webhook_url.startsWith('http')) {
+        errors.push('n8n: Webhook URL phải bắt đầu với http:// hoặc https://');
+    }
+
+    if (errors.length > 0) {
+        showAlert('danger', 'Lỗi validation:<br>' + errors.join('<br>'));
+        updateSaveStatus('error');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/config',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(settings),
+        success: function(data) {
+            if (data.status === 'success' || data.success) {
+                let message = 'Cấu hình đã được lưu thành công!';
+
+                // Show hot reload status
+                if (data.hot_reload === true) {
+                    message += '<br>✅ Thay đổi đã được áp dụng ngay lập tức';
+                } else if (data.hot_reload === false) {
+                    message += '<br>⚠️ Cần khởi động lại để áp dụng một số thay đổi';
+                }
+
+                showAlert('success', message);
+
+                // Update UI to reflect saved state
+                updateSaveStatus('saved');
+                markAsSaved();
+
+                // Capture new form data as baseline
+                setTimeout(() => {
+                    captureFormData();
+                }, 500);
+
+                // Show reload button if needed
+                if (data.restart_required) {
+                    showReloadButton();
+                }
+
+                // Optionally reload config to verify
+                setTimeout(() => {
+                    loadCurrentConfig();
+                }, 1000);
+            } else {
+                showAlert('danger', 'Lỗi lưu cấu hình: ' + (data.message || 'Unknown error'));
+            }
+        },
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ?
+                (xhr.responseJSON.message || xhr.responseJSON.error || 'Unknown error') :
+                'Network error';
+            showAlert('danger', 'Lỗi lưu cấu hình: ' + errorMsg);
+            updateSaveStatus('error');
+        }
+    });
+}
+
+function updateSaveStatus(status) {
+    const saveButton = $('button[onclick="saveSettings()"]');
+
+    if (status === 'saving') {
+        saveButton.prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin me-1"></i>Đang lưu...');
+    } else if (status === 'saved') {
+        saveButton.prop('disabled', false)
+            .html('<i class="fas fa-check me-1"></i>Đã lưu')
+            .removeClass('btn-primary').addClass('btn-success');
+
+        setTimeout(() => {
+            saveButton.html('<i class="fas fa-save me-1"></i>Lưu cấu hình')
+                .removeClass('btn-success').addClass('btn-primary');
+        }, 2000);
+    } else if (status === 'error') {
+        saveButton.prop('disabled', false)
+            .html('<i class="fas fa-times me-1"></i>Lỗi')
+            .removeClass('btn-primary').addClass('btn-danger');
+
+        setTimeout(() => {
+            saveButton.html('<i class="fas fa-save me-1"></i>Lưu cấu hình')
+                .removeClass('btn-danger').addClass('btn-primary');
+        }, 2000);
+    } else {
+        saveButton.prop('disabled', false)
+            .html('<i class="fas fa-save me-1"></i>Lưu cấu hình')
+            .removeClass('btn-success btn-danger').addClass('btn-primary');
+    }
+}
+
+function testConnection(type) {
+    updateConnectionStatus(type, 'testing');
+    updateConnectionDetails(type, 'Testing connection...');
+
+    let testData = { type: type };
+
+    // Prepare test data based on connection type
+    if (type === 'nextcloud') {
+        const url = $('#nextcloud_url').val();
+        const username = $('#nextcloud_username').val();
+        const password = $('#nextcloud_password').val();
+        const roomId = $('#room_id').val();
+
+        if (!url || !username || !password) {
+            updateConnectionStatus(type, 'error');
+            updateConnectionDetails(type, 'Missing required fields');
+            showAlert('warning', 'Please fill in Nextcloud URL, username, and password first');
+            return;
+        }
+
+        testData = { ...testData, url, username, password, room_id: roomId };
+
+    } else if (type === 'openrouter') {
+        const apiKey = $('#openrouter_api_key').val();
+        if (!apiKey) {
+            updateConnectionStatus(type, 'error');
+            updateConnectionDetails(type, 'API key required');
+            showAlert('warning', 'Please enter OpenRouter API key first');
+            return;
+        }
+        testData.api_key = apiKey;
+
+    } else if (type === 'n8n') {
+        const webhookUrl = $('#n8n_webhook_url').val();
+        if (!webhookUrl) {
+            updateConnectionStatus(type, 'error');
+            updateConnectionDetails(type, 'Webhook URL required');
+            showAlert('warning', 'Please enter n8n webhook URL first');
+            return;
+        }
+        testData.webhook_url = webhookUrl;
+        testData.auth_token = $('#n8n_auth_token').val();
+
+    } else if (type === 'sheets') {
+        const spreadsheetId = $('#default_spreadsheet').val();
+        const credentialsFile = $('#sheets_credentials')[0].files[0];
+
+        if (!spreadsheetId) {
+            alert('Vui lòng nhập Spreadsheet ID');
+            return;
+        }
+
+        if (!credentialsFile) {
+            alert('Vui lòng chọn file credentials JSON');
+            return;
+        }
+
+        // For now, assume credentials file is saved as 'credentials.json' or 'google_credentials.json'
+        testData.spreadsheet_id = spreadsheetId;
+        testData.credentials_file = 'credentials.json'; // Default path
+    }
+
+    $.ajax({
+        url: '/api/test-connection',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(testData),
+        success: function(data) {
+            if (data.success || data.status === 'success') {
+                updateConnectionStatus(type, 'success');
+                updateConnectionDetails(type, data.message || 'Connection successful');
+                showAlert('success', `${type.charAt(0).toUpperCase() + type.slice(1)} connection successful!`);
+            } else {
+                updateConnectionStatus(type, 'error');
+                updateConnectionDetails(type, data.message || 'Connection failed');
+                showAlert('danger', `${type.charAt(0).toUpperCase() + type.slice(1)} connection failed: ${data.message}`);
+            }
+        },
+        error: function(xhr) {
+            updateConnectionStatus(type, 'error');
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.message || xhr.responseJSON.error : 'Unknown error';
+            updateConnectionDetails(type, errorMsg);
+            showAlert('danger', `${type.charAt(0).toUpperCase() + type.slice(1)} connection error: ${errorMsg}`);
+        }
+    });
+}
+
+function testAllConnections() {
+    updateConnectionStatus('all', 'testing');
+
+    $.ajax({
+        url: '/api/test-all-connections',
+        method: 'POST',
+        success: function(data) {
+            // Update each connection status
+            for (const [service, result] of Object.entries(data)) {
+                updateConnectionStatus(service, result.success ? 'success' : 'error');
+            }
+
+            const successful = Object.values(data).filter(r => r.success).length;
+            const total = Object.keys(data).length;
+
+            if (successful === total) {
+                showAlert('success', `All connections successful! (${successful}/${total})`);
+            } else {
+                showAlert('warning', `${successful}/${total} connections successful`);
+            }
+        },
+        error: function(xhr) {
+            updateConnectionStatus('all', 'error');
+            showAlert('danger', 'Error testing connections: ' + (xhr.responseJSON ? xhr.responseJSON.message : 'Unknown error'));
+        }
+    });
+}
+
+function updateConnectionStatus(service, status) {
+    const statusMap = {
+        'testing': { class: 'bg-warning', text: 'Testing...', icon: 'fa-spinner fa-spin' },
+        'success': { class: 'bg-success', text: 'Connected', icon: 'fa-check' },
+        'error': { class: 'bg-danger', text: 'Failed', icon: 'fa-times' },
+        'not_tested': { class: 'bg-secondary', text: 'Not Tested', icon: 'fa-question' }
+    };
+
+    if (service === 'all') {
+        // Update all services
+        ['nextcloud', 'sheets', 'openrouter', 'n8n'].forEach(s => {
+            const element = $(`#${s === 'sheets' ? 'sheets' : s === 'openrouter' ? 'openrouter' : s === 'n8n' ? 'n8n' : 'nextcloud'}-status`);
+            if (status === 'testing') {
+                element.removeClass().addClass(`badge ${statusMap[status].class}`)
+                    .html(`<i class="fas ${statusMap[status].icon} me-1"></i>${statusMap[status].text}`);
+            }
+        });
+    } else {
+        const serviceMap = {
+            'nextcloud': 'nextcloud-status',
+            'google_sheets': 'sheets-status',
+            'openrouter': 'openrouter-status',
+            'n8n': 'n8n-status'
+        };
+
+        const elementId = serviceMap[service] || `${service}-status`;
+        const element = $(`#${elementId}`);
+
+        if (element.length) {
+            element.removeClass().addClass(`badge ${statusMap[status].class}`)
+                .html(`<i class="fas ${statusMap[status].icon} me-1"></i>${statusMap[status].text}`);
+        }
+    }
+}
+
+function updateConnectionDetails(service, message) {
+    const detailsMap = {
+        'nextcloud': 'nextcloud-details',
+        'sheets': 'sheets-details',
+        'openrouter': 'openrouter-details',
+        'n8n': 'n8n-details'
+    };
+
+    const elementId = detailsMap[service];
+    if (elementId) {
+        $(`#${elementId}`).text(message);
+    }
+}
+
+function updateConnectionSummary() {
+    const statuses = ['nextcloud', 'sheets', 'openrouter', 'n8n'].map(service => {
+        const element = $(`#${service === 'sheets' ? 'sheets' : service}-status`);
+        return element.hasClass('bg-success') ? 'success' :
+               element.hasClass('bg-danger') ? 'error' : 'unknown';
+    });
+
+    const connected = statuses.filter(s => s === 'success').length;
+    const failed = statuses.filter(s => s === 'error').length;
+    const total = statuses.length;
+
+    $('#connected-count').text(connected);
+    $('#failed-count').text(failed);
+
+    const percentage = total > 0 ? (connected / total) * 100 : 0;
+    $('#connection-progress').css('width', percentage + '%');
+
+    if (connected === total) {
+        $('#connection-summary').text('All connections working perfectly!');
+    } else if (connected > 0) {
+        $('#connection-summary').text(`${connected}/${total} connections working`);
+    } else {
+        $('#connection-summary').text('No successful connections');
+    }
+}
+
+function loadCurrentConfig() {
+    $('#config-status').removeClass('bg-success bg-danger').addClass('bg-warning')
+        .html('<i class="fas fa-spinner fa-spin me-1"></i>Loading...');
+
+    $.ajax({
+        url: '/api/config',
+        method: 'GET',
+        success: function(data) {
+            // Check if data has error
+            if (data.error) {
+                showAlert('danger', 'Configuration error: ' + data.error);
+                updateConfigStatus('error');
+                loadDefaultConfig();
+                return;
+            }
+
+            // Load Nextcloud config
+            if (data.nextcloud) {
+                $('#nextcloud_url').val(data.nextcloud.url || '');
+                $('#nextcloud_username').val(data.nextcloud.username || '');
+                $('#room_id').val(data.nextcloud.room_id || '');
+                $('#nextcloud_enabled').prop('checked', data.nextcloud.enabled !== false);
+                updateTabStatus('nextcloud', data.nextcloud.enabled && data.nextcloud.url && data.nextcloud.username);
+            }
+
+            // Load OpenRouter config
+            if (data.openrouter) {
+                $('#openrouter_api_key').val(data.openrouter.api_key || '');
+                $('#openrouter_model').val(data.openrouter.model || 'meta-llama/llama-3.1-8b-instruct:free');
+                $('#openrouter_enabled').prop('checked', data.openrouter.enabled !== false);
+                updateTabStatus('openrouter', data.openrouter.enabled && data.openrouter.api_key);
+            }
+
+            // Load integrations
+            if (data.integrations) {
+                // Google Sheets
+                if (data.integrations.google_sheets) {
+                    $('#google_sheets_spreadsheet_id').val(data.integrations.google_sheets.spreadsheet_id || '');
+                    $('#google_sheets_credentials_file').val(data.integrations.google_sheets.credentials_file || 'credentials.json');
+                    $('#google_sheets_enabled').prop('checked', data.integrations.google_sheets.enabled === true);
+                }
+
+                // n8n
+                $('#n8n_webhook_url').val(data.integrations.n8n_webhook_url || '');
+                $('#n8n_enabled').prop('checked', data.integrations.n8n_enabled === true);
+
+                const integrationsConfigured = data.integrations.google_sheets?.enabled || data.integrations.n8n_enabled;
+                updateTabStatus('integrations', integrationsConfigured);
+            }
+
+            // Load bot config
+            if (data.bot) {
+                $('#bot_name').val(data.bot.name || 'NextcloudBot');
+                $('#admin_user_id').val(data.bot.admin_user_id || '');
+                $('#language').val(data.bot.language || 'vi');
+                $('#auto_response').prop('checked', data.bot.auto_respond !== false);
+                $('#log_level').val(data.bot.log_level || 'INFO');
+                updateTabStatus('bot', true); // Bot always has defaults
+            }
+
+            updateConfigStatus('success');
+            showAlert('success', 'Configuration loaded successfully!');
+        },
+        error: function(xhr) {
+            console.error('Config load error:', xhr);
+            const errorMsg = xhr.responseJSON ?
+                (xhr.responseJSON.error || xhr.responseJSON.message || 'Unknown error') :
+                'Network error';
+
+            updateConfigStatus('error');
+            showAlert('warning', 'Could not load saved configuration: ' + errorMsg + '. Loading defaults...');
+            loadDefaultConfig();
+        }
+    });
+}
+
+function loadDefaultConfig() {
+    // Load default values when config fails
+    $('#nextcloud_url').val('');
+    $('#nextcloud_username').val('');
+    $('#room_id').val('');
+    $('#nextcloud_enabled').prop('checked', true);
+
+    $('#openrouter_api_key').val('');
+    $('#openrouter_model').val('meta-llama/llama-3.1-8b-instruct:free');
+    $('#openrouter_enabled').prop('checked', true);
+
+    $('#google_sheets_spreadsheet_id').val('');
+    $('#google_sheets_credentials_file').val('credentials.json');
+    $('#google_sheets_enabled').prop('checked', false);
+
+    $('#n8n_webhook_url').val('');
+    $('#n8n_enabled').prop('checked', false);
+
+    $('#bot_name').val('NextcloudBot');
+    $('#admin_user_id').val('');
+    $('#language').val('vi');
+    $('#auto_response').prop('checked', true);
+    $('#log_level').val('INFO');
+
+    updateConfigStatus('default');
+    updateAllTabStatuses();
+    showAlert('info', 'Default configuration loaded. Please configure and save.');
+}
+
+function updateConfigStatus(status) {
+    const statusMap = {
+        'success': { class: 'bg-success', text: 'Configuration Loaded', icon: 'fa-check-circle' },
+        'error': { class: 'bg-danger', text: 'Configuration Error', icon: 'fa-exclamation-circle' },
+        'default': { class: 'bg-warning', text: 'Default Settings', icon: 'fa-cog' },
+        'loading': { class: 'bg-info', text: 'Loading...', icon: 'fa-spinner fa-spin' }
+    };
+
+    const config = statusMap[status] || statusMap['default'];
+    $('#config-status').removeClass('bg-success bg-danger bg-warning bg-info')
+        .addClass(config.class)
+        .html(`<i class="fas ${config.icon} me-1"></i>${config.text}`);
+}
+
+function updateTabStatus(tab, isConfigured) {
+    const statusMap = {
+        'nextcloud': { element: '#nextcloud-tab-status', card: '#nextcloud-config-status' },
+        'openrouter': { element: '#openrouter-tab-status', card: '#openrouter-config-status' },
+        'integrations': { element: '#integrations-tab-status', card: '#integrations-config-status' },
+        'bot': { element: '#bot-tab-status', card: '#bot-config-status' }
+    };
+
+    const config = statusMap[tab];
+    if (config) {
+        const color = isConfigured ? 'success' : 'secondary';
+        const text = isConfigured ? 'Configured' : 'Not Configured';
+
+        $(config.element).removeClass('bg-success bg-secondary bg-warning')
+            .addClass(`bg-${color}`).text('●');
+        $(config.card).removeClass('bg-success bg-secondary bg-warning')
+            .addClass(`bg-${color}`).text(text);
+    }
+}
+
+function updateAllTabStatuses() {
+    // Check each tab configuration status
+    const nextcloudConfigured = $('#nextcloud_enabled').is(':checked') &&
+                               $('#nextcloud_url').val() &&
+                               $('#nextcloud_username').val();
+    updateTabStatus('nextcloud', nextcloudConfigured);
+
+    const openrouterConfigured = $('#openrouter_enabled').is(':checked') &&
+                                $('#openrouter_api_key').val();
+    updateTabStatus('openrouter', openrouterConfigured);
+
+    const integrationsConfigured = $('#google_sheets_enabled').is(':checked') ||
+                                  $('#n8n_enabled').is(':checked');
+    updateTabStatus('integrations', integrationsConfigured);
+
+    updateTabStatus('bot', true); // Bot always has defaults
+}
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.nextElementSibling;
+    const icon = button.querySelector('i');
+
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function showAlert(type, message) {
+    const alert = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    $('.container').prepend(alert);
+
+    // Note: Alerts will stay visible (no auto-dismiss)
+}
+
+function showReloadButton() {
+    const reloadAlert = `
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>⚠️ Cần khởi động lại:</strong> Một số thay đổi cần khởi động lại để có hiệu lực.
+            <button type="button" class="btn btn-sm btn-outline-warning ms-2" onclick="reloadConfig()">
+                <i class="fas fa-sync-alt me-1"></i>Tải lại cấu hình
+            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    $('.container').prepend(reloadAlert);
+}
+
+function reloadConfig() {
+    showAlert('info', 'Đang tải lại cấu hình...');
+
+    $.ajax({
+        url: '/api/config/reload',
+        method: 'POST',
+        success: function(data) {
+            if (data.status === 'success') {
+                let message = 'Cấu hình đã được tải lại thành công!';
+
+                if (data.hot_reload === true) {
+                    message += '<br>✅ Tất cả thay đổi đã được áp dụng';
+                } else {
+                    message += '<br>⚠️ Một số thay đổi vẫn cần khởi động lại hoàn toàn';
+                }
+
+                showAlert('success', message);
+
+                // Hide reload button
+                $('.alert-warning').fadeOut();
+
+                // Reload current config to show updated values
+                setTimeout(() => {
+                    loadCurrentConfig();
+                }, 500);
+            } else {
+                showAlert('danger', 'Lỗi tải lại cấu hình: ' + (data.message || 'Unknown error'));
+            }
+        },
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ?
+                (xhr.responseJSON.message || xhr.responseJSON.error || 'Unknown error') :
+                'Network error';
+            showAlert('danger', 'Lỗi tải lại cấu hình: ' + errorMsg);
+        }
+    });
+}
+
+// Track changes for auto-save detection
+let hasUnsavedChanges = false;
+let originalFormData = {};
+
+function markAsChanged() {
+    hasUnsavedChanges = true;
+    updateSaveButtonState();
+}
+
+function markAsSaved() {
+    hasUnsavedChanges = false;
+    updateSaveButtonState();
+}
+
+function updateSaveButtonState() {
+    const saveButton = $('button[onclick="saveSettings()"]');
+
+    if (hasUnsavedChanges) {
+        saveButton.removeClass('btn-outline-primary').addClass('btn-warning')
+            .html('<i class="fas fa-exclamation-triangle me-1"></i>Có thay đổi chưa lưu');
+    } else {
+        saveButton.removeClass('btn-warning btn-success btn-danger').addClass('btn-primary')
+            .html('<i class="fas fa-save me-1"></i>Lưu cấu hình');
+    }
+}
+
+function captureFormData() {
+    // Capture current form state
+    originalFormData = {
+        nextcloud_url: $('#nextcloud_url').val(),
+        nextcloud_username: $('#nextcloud_username').val(),
+        nextcloud_password: $('#nextcloud_password').val(),
+        room_id: $('#room_id').val(),
+        api_version: $('#api_version').val(),
+        auto_join_rooms: $('#auto_join_rooms').is(':checked'),
+
+        openrouter_api_key: $('#openrouter_api_key').val(),
+        default_model: $('#default_model').val(),
+        max_tokens: $('#max_tokens').val(),
+        temperature: $('#temperature').val(),
+
+        n8n_webhook_url: $('#n8n_webhook_url').val(),
+        n8n_auth_token: $('#n8n_auth_token').val(),
+        default_spreadsheet: $('#default_spreadsheet').val(),
+
+        bot_name: $('#bot_name').val(),
+        response_delay: $('#response_delay').val(),
+        command_prefix: $('#command_prefix').val(),
+        enable_ai: $('#enable_ai').is(':checked'),
+        auto_respond: $('#auto_respond').is(':checked'),
+        log_conversations: $('#log_conversations').is(':checked'),
+        debug_mode: $('#debug_mode').is(':checked')
+    };
+}
+
+function checkForChanges() {
+    const currentData = {
+        nextcloud_url: $('#nextcloud_url').val(),
+        nextcloud_username: $('#nextcloud_username').val(),
+        nextcloud_password: $('#nextcloud_password').val(),
+        room_id: $('#room_id').val(),
+        api_version: $('#api_version').val(),
+        auto_join_rooms: $('#auto_join_rooms').is(':checked'),
+
+        openrouter_api_key: $('#openrouter_api_key').val(),
+        default_model: $('#default_model').val(),
+        max_tokens: $('#max_tokens').val(),
+        temperature: $('#temperature').val(),
+
+        n8n_webhook_url: $('#n8n_webhook_url').val(),
+        n8n_auth_token: $('#n8n_auth_token').val(),
+        default_spreadsheet: $('#default_spreadsheet').val(),
+
+        bot_name: $('#bot_name').val(),
+        response_delay: $('#response_delay').val(),
+        command_prefix: $('#command_prefix').val(),
+        enable_ai: $('#enable_ai').is(':checked'),
+        auto_respond: $('#auto_respond').is(':checked'),
+        log_conversations: $('#log_conversations').is(':checked'),
+        debug_mode: $('#debug_mode').is(':checked')
+    };
+
+    // Compare with original
+    const changed = JSON.stringify(currentData) !== JSON.stringify(originalFormData);
+
+    if (changed && !hasUnsavedChanges) {
+        markAsChanged();
+    } else if (!changed && hasUnsavedChanges) {
+        markAsSaved();
+    }
+}
+
+// Initialize page
+$(document).ready(function() {
+    // Load current configuration on page load
+    loadCurrentConfig();
+
+    // Update connection summary periodically
+    setInterval(updateConnectionSummary, 2000);
+
+    // Add change listeners to update tab statuses
+    $('input, select').on('input change', function() {
+        updateAllTabStatuses();
+        setTimeout(checkForChanges, 100);
+    });
+
+    // Set up change detection after config is loaded
+    setTimeout(() => {
+        captureFormData();
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = 'Bạn có thay đổi chưa được lưu. Bạn có chắc muốn rời khỏi trang?';
+                return e.returnValue;
+            }
+        });
+    }, 2000);
+});
+</script>
+{% endblock %}
